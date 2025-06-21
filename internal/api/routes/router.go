@@ -1,0 +1,51 @@
+package routes
+
+import (
+	"classorder-backend/internal/api/handlers"
+	"classorder-backend/middleware"
+
+	"github.com/gin-gonic/gin"
+)
+
+// SetupRouter 配置所有API路由
+func SetupRouter() *gin.Engine {
+	// 使用默认配置创建一个Gin引擎
+	r := gin.Default()
+
+	// 提供静态文件服务，用于访问上传的头像
+	// 例如 /uploads/avatar.png
+	r.Static("/uploads", "./uploads")
+
+	// 创建一个/api/v1的路由组
+	api := r.Group("/api/v1")
+	{
+		// 认证相关路由 (公开)
+		auth := api.Group("/auth")
+		{
+			auth.POST("/login", handlers.LoginHandler)
+		}
+
+		// 上传文件路由 (需要登录)
+		// 任何登录用户都可以上传，但在教练创建/更新时由管理员使用
+		api.POST("/upload", middleware.JWTAuthMiddleware(), handlers.UploadHandler)
+
+		// 教练管理路由
+		coaches := api.Group("/coaches")
+		{
+			coaches.GET("", handlers.ListCoachesHandler)      // 获取教练列表 (公开)
+			coaches.GET("/:id", handlers.GetCoachHandler)     // 获取单个教练信息 (公开)
+			
+			// 以下操作需要管理员权限
+			adminCoaches := coaches.Group("", middleware.JWTAuthMiddleware(), middleware.AdminAuthMiddleware())
+			{
+				adminCoaches.POST("", handlers.CreateCoachHandler)
+				adminCoaches.PUT("/:id", handlers.UpdateCoachHandler)
+				adminCoaches.DELETE("/:id", handlers.DeleteCoachHandler)
+			}
+		}
+
+		// 在这里可以继续添加其他路由组, e.g., bookings
+	}
+
+	return r
+} 

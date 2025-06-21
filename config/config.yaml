@@ -1,0 +1,19 @@
+# 服务器配置
+server:
+  port: ":8080" # 监听的端口
+
+# 数据库配置
+database:
+  user: "root"
+  password: "tanxue_class" # 已更新为你的密码
+  host: "127.0.0.1"
+  port: "3306"
+  dbname: "class_order" # 已更新为新的数据库名称
+  charset: "utf8mb4"
+  parseTime: "True"
+  loc: "Local"
+
+# JWT 配置
+jwt:
+  secret: "a_very_secret_key_that_should_be_long_and_random" # 用于签发JWT的密钥，请务必修改
+  expiration: 72 # Token有效期，单位: 小时 
