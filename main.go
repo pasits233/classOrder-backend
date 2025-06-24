@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -20,7 +22,13 @@ func main() {
 	r := router.SetupRouter()
 
 	// 添加静态文件服务
-	r.StaticFS("/", http.Dir(filepath.Join("frontend", "dist")))
+	// 将静态文件服务移到最后，并使用一个特定的前缀
+	r.NoRoute(func(c *gin.Context) {
+		// 如果不是API请求，则尝试提供静态文件
+		if c.Request.URL.Path[:4] != "/api" {
+			c.FileFromFS(c.Request.URL.Path, http.Dir(filepath.Join("frontend", "dist")))
+		}
+	})
 
 	// 启动服务器
 	port := ":9528"
