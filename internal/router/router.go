@@ -16,15 +16,12 @@ func SetupRouter() *gin.Engine {
 	// 例如 /uploads/avatar.png
 	r.Static("/uploads", "./uploads")
 
-	// 创建一个/api/v1的路由组
-	api := r.Group("/api/v1")
-	{
-		// 认证相关路由 (公开)
-		auth := api.Group("/auth")
-		{
-			auth.POST("/login", handlers.LoginHandler)
-		}
+	// 公开的登录路由
+	r.POST("/api/login", handlers.LoginHandler)
 
+	// API路由组
+	api := r.Group("/api")
+	{
 		// 上传文件路由 (需要登录)
 		// 任何登录用户都可以上传，但在教练创建/更新时由管理员使用
 		api.POST("/upload", middleware.JWTAuthMiddleware(), handlers.UploadHandler)

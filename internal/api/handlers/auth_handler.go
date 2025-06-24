@@ -16,6 +16,7 @@ import (
 type LoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	Role     string `json:"role" binding:"required"`
 }
 
 // LoginResponse 定义了成功登录后返回的JSON结构
@@ -34,7 +35,7 @@ func LoginHandler(c *gin.Context) {
 
 	// 1. 从数据库中查找用户
 	var user models.User
-	result := database.DB.Where("username = ?", req.Username).First(&user)
+	result := database.DB.Where("username = ? AND role = ?", req.Username, req.Role).First(&user)
 	if result.Error != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
