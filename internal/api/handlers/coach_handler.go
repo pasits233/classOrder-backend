@@ -174,7 +174,7 @@ func DeleteCoachHandler(c *gin.Context) {
 	}
 
 	// 使用事务确保原子性
-	err := database.DB.Transaction(func(tx *gorm.DB) error {
+	dbErr := database.DB.Transaction(func(tx *gorm.DB) error {
 		// 删除Coach记录会导致User记录被级联删除（如果DB支持或GORM处理得当）
 		// 但为了保险，我们显式删除User
 		if err := tx.Delete(&models.User{}, coach.UserID).Error; err != nil {
@@ -190,11 +190,10 @@ func DeleteCoachHandler(c *gin.Context) {
 	
 	// 由于外键约束 ON DELETE CASCADE，删除users表中的记录会自动删除coaches表中对应的记录
 	// 所以我们只需要删除user即可
-	if err := database.DB.Delete(&models.User{}, coach.UserID).Error; err != nil {
+	if dbErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete coach and associated user"})
 		return
 	}
-
 
 	c.JSON(http.StatusOK, gin.H{"message": "Coach deleted successfully"})
 } 

@@ -23,6 +23,7 @@ type Coach struct {
 	AvatarURL   string    `gorm:"type:varchar(255)"`
 	CreatedAt   time.Time
 	Bookings    []Booking `gorm:"foreignKey:CoachID;constraint:OnDelete:CASCADE;"` // 一对多关系
+	User        User      `gorm:"foreignKey:UserID"` // 新增字段
 }
 
 // Booking 对应于 'bookings' 表
