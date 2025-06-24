@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Layout, Menu } from 'antd';
 import {
   UserOutlined,
@@ -40,12 +40,22 @@ export default function App() {
   const location = useLocation();
   const role = getRole();
 
+  useEffect(() => {
+    console.log('App mounted');
+    console.log('Current role:', role);
+    console.log('Current location:', location.pathname);
+  }, []);
+
+  console.log('App rendering, role:', role, 'pathname:', location.pathname);
+
   if (!role && location.pathname !== '/login') {
+    console.log('No role, redirecting to login');
     navigate('/login');
     return null;
   }
 
   if (role && location.pathname === '/login') {
+    console.log('Has role but on login page, redirecting to home');
     navigate('/');
     return null;
   }
@@ -53,6 +63,7 @@ export default function App() {
   const filteredMenu = menuItems.filter(item => item.roles.includes(role));
 
   const handleMenuClick = ({ key }) => {
+    console.log('Menu clicked:', key);
     if (key === 'logout') {
       logout();
       navigate('/login');
