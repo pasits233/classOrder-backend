@@ -1,8 +1,8 @@
 package database
 
 import (
-	"classorder-backend/config"
-	"classorder-backend/internal/models"
+	"classOrder-backend/config"
+	"classOrder-backend/internal/models"
 	"fmt"
 	"log"
 	"os"

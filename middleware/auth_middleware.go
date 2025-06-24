@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"classorder-backend/config"
+	"classOrder-backend/config"
 	"net/http"
 	"strings"
 

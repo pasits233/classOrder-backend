@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"classorder-backend/internal/api/handlers"
-	"classorder-backend/middleware"
+	"classOrder-backend/internal/api/handlers"
+	"classOrder-backend/middleware"
 
 	"github.com/gin-gonic/gin"
 )

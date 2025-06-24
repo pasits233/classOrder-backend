@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"classorder-backend/internal/database"
-	"classorder-backend/internal/models"
+	"classOrder-backend/internal/database"
+	"classOrder-backend/internal/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

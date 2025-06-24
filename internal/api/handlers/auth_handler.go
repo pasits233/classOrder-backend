@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"classorder-backend/config"
-	"classorder-backend/internal/database"
-	"classorder-backend/internal/models"
+	"classOrder-backend/config"
+	"classOrder-backend/internal/database"
+	"classOrder-backend/internal/models"
 	"net/http"
 	"time"
 
