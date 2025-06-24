@@ -6,6 +6,7 @@ import (
 	"classOrder-backend/internal/router"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -27,11 +28,30 @@ func main() {
 		path := c.Request.URL.Path
 		// 如果不是API请求，则尝试提供静态文件
 		if !strings.HasPrefix(path, "/api") {
-			// 如果是根路径，则提供 index.html
-			if path == "/" {
-				path = "/index.html"
+			// 构建前端文件的绝对路径
+			distPath := filepath.Join("frontend", "dist")
+			if !filepath.IsAbs(distPath) {
+				// 如果是相对路径，转换为绝对路径
+				wd, err := os.Getwd()
+				if err == nil {
+					distPath = filepath.Join(wd, "frontend", "dist")
+				}
 			}
-			c.FileFromFS(path, http.Dir(filepath.Join("frontend", "dist")))
+
+			// 如果是根路径或者文件不存在，默认返回index.html
+			requestedFile := filepath.Join(distPath, path)
+			if path == "/" || !fileExists(requestedFile) {
+				indexPath := filepath.Join(distPath, "index.html")
+				if fileExists(indexPath) {
+					c.File(indexPath)
+					return
+				}
+				// 如果index.html也不存在，记录错误
+				log.Printf("警告: index.html不存在于路径: %s", indexPath)
+				c.String(http.StatusNotFound, "File not found")
+				return
+			}
+			c.File(requestedFile)
 		}
 	})
 
@@ -41,4 +61,13 @@ func main() {
 	if err := r.Run(port); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
+}
+
+// fileExists 检查文件是否存在
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 } 
