@@ -42,7 +42,6 @@ func ExecuteMigrations(db *gorm.DB) error {
 	// 尝试读取迁移文件
 	migrationSQL, err := os.ReadFile(migrationPath)
 	if err != nil {
-		// 如果第一次尝试失败，尝试不同的路径
 		alternatePath := filepath.Join("internal", "database", "migrations.sql")
 		migrationSQL, err = os.ReadFile(alternatePath)
 		if err != nil {
@@ -96,7 +95,9 @@ func InitDB() {
 		cfg.Loc,
 	)
 
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true, // 禁用GORM的外键约束处理
+	})
 	if err != nil {
 		log.Fatalf("连接数据库失败: %v", err)
 	}
@@ -106,15 +107,20 @@ func InitDB() {
 	// 首先执行自定义迁移
 	if err := ExecuteMigrations(DB); err != nil {
 		log.Printf("警告: 自定义迁移失败: %v", err)
-		return // 如果自定义迁移失败，不继续执行自动迁移
+		return
 	}
 
 	log.Println("自定义迁移成功完成。")
 
-	// 自动迁移模型
-	err = DB.AutoMigrate(&models.User{}, &models.Coach{}, &models.Booking{})
-	if err != nil {
-		log.Fatalf("自动迁移表失败: %v", err)
+	// 自动迁移模型（不处理外键约束）
+	if err := DB.Migrator().AutoMigrate(
+		&models.User{},
+		&models.Coach{},
+		&models.Booking{},
+	); err != nil {
+		log.Printf("警告: 自动迁移表失败: %v", err)
+		return
 	}
+
 	log.Println("数据库迁移检查成功。")
 } 
