@@ -1,4 +1,4 @@
-module classorder-backend
+module classOrder-backend
 
 go 1.20
 

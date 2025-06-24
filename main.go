@@ -1,9 +1,9 @@
 package main
 
 import (
-	"classorder-backend/config"
-	"classorder-backend/internal/database"
-	"classorder-backend/internal/router"
+	"classOrder-backend/config"
+	"classOrder-backend/internal/database"
+	"classOrder-backend/internal/router"
 	"log"
 	"net/http"
 	"path/filepath"
