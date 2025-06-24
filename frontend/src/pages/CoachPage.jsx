@@ -126,10 +126,16 @@ export default function CoachPage() {
         confirmLoading={uploading}
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}>
+          <Form.Item name="username" label="账号" rules={[{ required: true, message: '请输入账号' }]}> 
             <Input />
           </Form.Item>
-          <Form.Item name="intro" label="简介" rules={[{ required: true, message: '请输入简介' }]}>
+          <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}> 
+            <Input.Password />
+          </Form.Item>
+          <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}> 
+            <Input />
+          </Form.Item>
+          <Form.Item name="intro" label="简介" rules={[{ required: true, message: '请输入简介' }]}> 
             <Input />
           </Form.Item>
           <Form.Item label="头像">
