@@ -4,6 +4,7 @@ import (
 	"classOrder-backend/config"
 	"classOrder-backend/internal/database"
 	"classOrder-backend/internal/models"
+	"log"
 	"net/http"
 	"time"
 
@@ -29,21 +30,28 @@ type LoginResponse struct {
 func LoginHandler(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("登录请求格式错误: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
+
+	log.Printf("收到登录请求: username=%s, role=%s", req.Username, req.Role)
 
 	// 1. 从数据库中查找用户
 	var user models.User
 	result := database.DB.Where("username = ? AND role = ?", req.Username, req.Role).First(&user)
 	if result.Error != nil {
+		log.Printf("用户查找失败: username=%s, role=%s, error=%v", req.Username, req.Role, result.Error)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
+	log.Printf("找到用户: id=%d, username=%s, role=%s", user.ID, user.Username, user.Role)
+
 	// 2. 比较密码哈希值
 	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
 	if err != nil {
+		log.Printf("密码验证失败: username=%s", req.Username)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
@@ -51,9 +59,12 @@ func LoginHandler(c *gin.Context) {
 	// 3. 生成JWT
 	token, err := generateJWT(user)
 	if err != nil {
+		log.Printf("生成JWT失败: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
+
+	log.Printf("登录成功: username=%s, role=%s", user.Username, user.Role)
 
 	c.JSON(http.StatusOK, LoginResponse{
 		Token: token,
