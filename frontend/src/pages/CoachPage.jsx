@@ -39,7 +39,7 @@ export default function CoachPage() {
 
   const handleEdit = (record) => {
     setEditing(record);
-    setAvatarUrl(record.avatar || '');
+    setAvatarUrl(record.avatar_url || '');
     form.setFieldsValue(record);
     setModalOpen(true);
   };
@@ -59,7 +59,7 @@ export default function CoachPage() {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      let data = { ...values, avatar: avatarUrl };
+      let data = { ...values, avatar_url: avatarUrl };
       if (editing) {
         await axios.put(`/api/coaches/${editing.id}`, data, {
           headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
@@ -89,7 +89,7 @@ export default function CoachPage() {
           Authorization: 'Bearer ' + localStorage.getItem('token'),
         },
       });
-      setAvatarUrl(res.data.url);
+      setAvatarUrl(res.data.url || res.data.file_url);
       message.success('上传成功');
     } catch (e) {
       message.error('上传失败');
@@ -99,7 +99,7 @@ export default function CoachPage() {
   };
 
   const columns = [
-    { title: '头像', dataIndex: 'avatar', render: url => url ? <Image src={url} width={40} /> : '-' },
+    { title: '头像', dataIndex: 'avatar_url', render: url => url ? <Image src={url} width={40} /> : '-' },
     { title: '姓名', dataIndex: 'name' },
     { title: '简介', dataIndex: 'intro' },
     { title: '操作', dataIndex: 'action', render: (_, record) => (
