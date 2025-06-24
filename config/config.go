@@ -40,18 +40,40 @@ type JWTConfig struct {
 // Cfg 是一个全局可访问的配置实例
 var Cfg *Config
 
-// LoadConfig 从指定的路径加载配置到全局实例
-func LoadConfig(path string) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		log.Fatalf("failed to read config file at path %s: %v", path, err)
+// InitConfig 初始化配置
+func InitConfig() {
+	// 尝试多个可能的配置文件路径
+	configPaths := []string{
+		"config/config.yaml",
+		"backend/config/config.yaml",
+		"../config/config.yaml",
 	}
 
+	var configPath string
+	for _, path := range configPaths {
+		if _, err := os.Stat(path); err == nil {
+			configPath = path
+			break
+		}
+	}
+
+	if configPath == "" {
+		log.Fatal("Could not find config file in any of the expected locations")
+	}
+
+	// 读取配置文件
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		log.Fatalf("Failed to read config file: %v", err)
+	}
+
+	// 解析配置
 	var config Config
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		log.Fatalf("failed to unmarshal config: %v", err)
+		log.Fatalf("Failed to parse config file: %v", err)
 	}
+
 	Cfg = &config
-	log.Println("Configuration loaded successfully.")
+	log.Printf("Configuration loaded successfully from %s", configPath)
 } 
