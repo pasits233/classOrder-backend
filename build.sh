@@ -2,6 +2,9 @@
 
 set -e
 
+# 设置 Go Modules 代理
+export GOPROXY=https://goproxy.cn,direct
+
 # 当前目录即为 backend
 # 创建 bin 目录
 mkdir -p ./bin
