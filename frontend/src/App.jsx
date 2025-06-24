@@ -6,7 +6,7 @@ import {
   CalendarOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import CoachPage from './pages/CoachPage';
 import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
@@ -48,20 +48,6 @@ export default function App() {
 
   console.log('App rendering, role:', role, 'pathname:', location.pathname);
 
-  if (!role && location.pathname !== '/login') {
-    console.log('No role, redirecting to login');
-    navigate('/login');
-    return null;
-  }
-
-  if (role && location.pathname === '/login') {
-    console.log('Has role but on login page, redirecting to home');
-    navigate('/');
-    return null;
-  }
-
-  const filteredMenu = menuItems.filter(item => item.roles.includes(role));
-
   const handleMenuClick = ({ key }) => {
     console.log('Menu clicked:', key);
     if (key === 'logout') {
@@ -71,6 +57,18 @@ export default function App() {
       navigate(`/${key}`);
     }
   };
+
+  // 如果没有角色且不在登录页，显示登录组件
+  if (!role && location.pathname !== '/login') {
+    return <LoginPage />;
+  }
+
+  // 如果有角色但在登录页，重定向到首页
+  if (role && location.pathname === '/login') {
+    return <Navigate to="/" replace />;
+  }
+
+  const filteredMenu = menuItems.filter(item => item.roles.includes(role));
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -97,9 +95,10 @@ export default function App() {
         <Content style={{ margin: 24, background: '#fff', minHeight: 360 }}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/coach" element={<CoachPage />} />
-            <Route path="/booking" element={<BookingPage />} />
-            <Route path="*" element={<CoachPage />} />
+            <Route path="/coach" element={role ? <CoachPage /> : <Navigate to="/login" />} />
+            <Route path="/booking" element={role ? <BookingPage /> : <Navigate to="/login" />} />
+            <Route path="/" element={<Navigate to="/coach" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Content>
       </Layout>
