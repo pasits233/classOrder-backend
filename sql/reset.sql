@@ -5,14 +5,14 @@ DELETE FROM users;
 
 -- 创建管理员用户（密码：admin123）
 INSERT INTO users (username, password_hash, role) VALUES 
-('admin', '$2a$10$QOJ6qh/ZhBfGNqHlPVpE8.dw1j6qJJwNp7U8P6Ae.S0UZ3TyXqmjG', 'admin');
+('admin', '$2a$10$3kNKJxkUYj1lf9.RlBXPzOXXCLQOqdYbHzQn.E3jaSY5MYPJfyO4C', 'admin');
 
 -- 创建4个教练用户（密码都是：coach123）
 INSERT INTO users (username, password_hash, role) VALUES
-('vincy', '$2a$10$8jw70j7J0JJvHzGxGYq8b.f/BmNqFA8UYqX3G8JmGG6R7EVhCzKJO', 'coach'),
-('jj', '$2a$10$8jw70j7J0JJvHzGxGYq8b.f/BmNqFA8UYqX3G8JmGG6R7EVhCzKJO', 'coach'),
-('pentium', '$2a$10$8jw70j7J0JJvHzGxGYq8b.f/BmNqFA8UYqX3G8JmGG6R7EVhCzKJO', 'coach'),
-('liming', '$2a$10$8jw70j7J0JJvHzGxGYq8b.f/BmNqFA8UYqX3G8JmGG6R7EVhCzKJO', 'coach');
+('vincy', '$2a$10$YEiWoFqz3mYO3Zs3f6HnUOAPTyqjGJqwJ2e6bb0GVxHoX/nGy6NpC', 'coach'),
+('jj', '$2a$10$YEiWoFqz3mYO3Zs3f6HnUOAPTyqjGJqwJ2e6bb0GVxHoX/nGy6NpC', 'coach'),
+('pentium', '$2a$10$YEiWoFqz3mYO3Zs3f6HnUOAPTyqjGJqwJ2e6bb0GVxHoX/nGy6NpC', 'coach'),
+('liming', '$2a$10$YEiWoFqz3mYO3Zs3f6HnUOAPTyqjGJqwJ2e6bb0GVxHoX/nGy6NpC', 'coach');
 
 -- 创建教练信息
 INSERT INTO coaches (user_id, name, description, avatar_url) VALUES
