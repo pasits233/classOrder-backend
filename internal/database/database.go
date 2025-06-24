@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -14,8 +15,27 @@ import (
 
 var DB *gorm.DB
 
+// MigrationRecord 用于记录迁移历史
+type MigrationRecord struct {
+	ID        uint      `gorm:"primaryKey"`
+	Name      string    `gorm:"type:varchar(255);not null;unique"`
+	AppliedAt time.Time `gorm:"not null"`
+}
+
 // ExecuteMigrations 执行自定义SQL迁移
 func ExecuteMigrations(db *gorm.DB) error {
+	// 创建迁移记录表
+	if err := db.AutoMigrate(&MigrationRecord{}); err != nil {
+		return fmt.Errorf("创建迁移记录表失败: %v", err)
+	}
+
+	// 检查是否已经执行过此次迁移
+	var record MigrationRecord
+	if err := db.Where("name = ?", "user_id_type_migration").First(&record).Error; err == nil {
+		log.Println("迁移已经执行过，跳过...")
+		return nil
+	}
+
 	// 使用相对于可执行文件的路径
 	migrationPath := filepath.Join("backend", "internal", "database", "migrations.sql")
 	
@@ -31,12 +51,33 @@ func ExecuteMigrations(db *gorm.DB) error {
 		}
 	}
 
-	// 分别执行每条SQL语句
-	err = db.Exec(string(migrationSQL)).Error
-	if err != nil {
+	// 开启事务
+	tx := db.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("开启事务失败: %v", tx.Error)
+	}
+
+	// 执行迁移SQL
+	if err := tx.Exec(string(migrationSQL)).Error; err != nil {
+		tx.Rollback()
 		return fmt.Errorf("执行迁移失败: %v", err)
 	}
 
+	// 记录迁移完成
+	if err := tx.Create(&MigrationRecord{
+		Name:      "user_id_type_migration",
+		AppliedAt: time.Now(),
+	}).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("记录迁移历史失败: %v", err)
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("提交事务失败: %v", err)
+	}
+
+	log.Println("成功执行并记录迁移")
 	return nil
 }
 
@@ -44,7 +85,7 @@ func ExecuteMigrations(db *gorm.DB) error {
 func InitDB() {
 	var err error
 	cfg := config.Cfg.Database
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=%s&loc=%s",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=%s&loc=%s&multiStatements=true",
 		cfg.User,
 		cfg.Password,
 		cfg.Host,
@@ -65,8 +106,10 @@ func InitDB() {
 	// 首先执行自定义迁移
 	if err := ExecuteMigrations(DB); err != nil {
 		log.Printf("警告: 自定义迁移失败: %v", err)
-		// 即使自定义迁移失败，继续执行自动迁移
+		return // 如果自定义迁移失败，不继续执行自动迁移
 	}
+
+	log.Println("自定义迁移成功完成。")
 
 	// 自动迁移模型
 	err = DB.AutoMigrate(&models.User{}, &models.Coach{}, &models.Booking{})
