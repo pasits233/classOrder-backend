@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, message, Select } from 'antd';
-import axios from 'axios';
 import { setRole } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
+import request from '../utils/request';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -11,7 +11,7 @@ export default function LoginPage() {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const res = await axios.post('/api/login', {
+      const res = await request.post('/api/login', {
         username: values.username,
         password: values.password,
         role: values.role,
@@ -25,7 +25,7 @@ export default function LoginPage() {
         message.error('登录失败');
       }
     } catch (e) {
-      message.error('登录失败');
+      message.error(e.response?.data?.message || '登录失败');
     } finally {
       setLoading(false);
     }
