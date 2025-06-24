@@ -11,7 +11,7 @@ type User struct {
 	PasswordHash string    `gorm:"type:varchar(255);not null"`
 	Role         string    `gorm:"type:varchar(50);not null"` // 'admin' 或 'coach'
 	CreatedAt    time.Time
-	Coach        Coach     `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;"` // 一对一关系
+	// Coach        Coach     `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;"` // 移除递归引用
 }
 
 // Coach 对应于 'coaches' 表
