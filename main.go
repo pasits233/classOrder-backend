@@ -2,26 +2,30 @@ package main
 
 import (
 	"classorder-backend/config"
-	"classorder-backend/internal/api/routes"
 	"classorder-backend/internal/database"
-	"fmt"
+	"classorder-backend/internal/router"
 	"log"
+	"net/http"
+	"path/filepath"
 )
 
 func main() {
-	// 1. 加载配置
-	config.LoadConfig("config/config.yaml")
-	
-	// 2. 初始化数据库连接
+	// 初始化配置
+	config.InitConfig()
+
+	// 初始化数据库连接
 	database.InitDB()
 
-	// 3. 设置路由
-	r := routes.SetupRouter()
+	// 设置路由
+	r := router.SetupRouter()
 
-	// 4. 从配置启动服务器
-	port := config.Cfg.Server.Port
-	fmt.Printf("Server is running on http://127.0.0.1%s\n", port)
+	// 添加静态文件服务
+	r.StaticFS("/", http.Dir(filepath.Join("frontend", "dist")))
+
+	// 启动服务器
+	port := ":9528"
+	log.Printf("Server is running on port%s\n", port)
 	if err := r.Run(port); err != nil {
-		log.Fatalf("Failed to run server: %v", err)
+		log.Fatalf("Server failed to start: %v", err)
 	}
 } 
