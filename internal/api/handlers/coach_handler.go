@@ -130,17 +130,20 @@ func GetCoachHandler(c *gin.Context) {
 }
 
 // UpdateCoachRequest 定义了更新教练的请求结构
+// 新增 Password 字段
 type UpdateCoachRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	AvatarURL   string `json:"avatar_url"`
+	Password    string `json:"password"`
 }
 
 // UpdateCoachHandler 更新教练信息
 func UpdateCoachHandler(c *gin.Context) {
 	id := c.Param("id")
 	var coach models.Coach
-	if err := database.DB.First(&coach, id).Error; err != nil {
+	// 预加载 User
+	if err := database.DB.Preload("User").First(&coach, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Coach not found"})
 		return
 	}
@@ -151,14 +154,23 @@ func UpdateCoachHandler(c *gin.Context) {
 		return
 	}
 
-	// 更新字段
+	// 更新教练表
 	coach.Name = req.Name
 	coach.Description = req.Description
 	coach.AvatarURL = req.AvatarURL
-
 	if err := database.DB.Save(&coach).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update coach"})
 		return
+	}
+
+	// 如果有新密码，使用 username 查找 user 并更新密码
+	if req.Password != "" {
+		var user models.User
+		if err := database.DB.Where("username = ?", coach.User.Username).First(&user).Error; err == nil {
+			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+			user.PasswordHash = string(hashedPassword)
+			database.DB.Save(&user)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Coach updated successfully"})
@@ -187,7 +199,7 @@ func DeleteCoachHandler(c *gin.Context) {
 
 		return nil
 	})
-	
+
 	// 由于外键约束 ON DELETE CASCADE，删除users表中的记录会自动删除coaches表中对应的记录
 	// 所以我们只需要删除user即可
 	if dbErr != nil {
@@ -196,4 +208,4 @@ func DeleteCoachHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Coach deleted successfully"})
-} 
+}

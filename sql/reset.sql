@@ -4,15 +4,17 @@ DELETE FROM coaches;
 DELETE FROM users;
 
 -- 创建管理员用户（密码：admin123）
+-- 哈希值在您的服务器上生成
 INSERT INTO users (username, password_hash, role) VALUES 
-('admin', '$2a$10$3kNKJxkUYj1lf9.RlBXPzOXXCLQOqdYbHzQn.E3jaSY5MYPJfyO4C', 'admin');
+('admin', '$2a$10$Fd/j2MMKCETb2Yjw0uDa3OEFw6zdF26d9RiCADK5hRXmrQO3fwLKO', 'admin');
 
 -- 创建4个教练用户（密码都是：coach123）
+-- 哈希值在您的服务器上生成
 INSERT INTO users (username, password_hash, role) VALUES
-('vincy', '$2a$10$YEiWoFqz3mYO3Zs3f6HnUOAPTyqjGJqwJ2e6bb0GVxHoX/nGy6NpC', 'coach'),
-('jj', '$2a$10$YEiWoFqz3mYO3Zs3f6HnUOAPTyqjGJqwJ2e6bb0GVxHoX/nGy6NpC', 'coach'),
-('pentium', '$2a$10$YEiWoFqz3mYO3Zs3f6HnUOAPTyqjGJqwJ2e6bb0GVxHoX/nGy6NpC', 'coach'),
-('liming', '$2a$10$YEiWoFqz3mYO3Zs3f6HnUOAPTyqjGJqwJ2e6bb0GVxHoX/nGy6NpC', 'coach');
+('vincy', '$2a$10$Q892VD/fdO7zxkW/yEbB..kJyjjmKy52y3hsgl51MAr.Vw2IpuUG6', 'coach'),
+('jj', '$2a$10$Q892VD/fdO7zxkW/yEbB..kJyjjmKy52y3hsgl51MAr.Vw2IpuUG6', 'coach'),
+('pentium', '$2a$10$Q892VD/fdO7zxkW/yEbB..kJyjjmKy52y3hsgl51MAr.Vw2IpuUG6', 'coach'),
+('liming', '$2a$10$Q892VD/fdO7zxkW/yEbB..kJyjjmKy52y3hsgl51MAr.Vw2IpuUG6', 'coach');
 
 -- 创建教练信息
 INSERT INTO coaches (user_id, name, description, avatar_url) VALUES
