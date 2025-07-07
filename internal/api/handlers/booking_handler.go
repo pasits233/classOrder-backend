@@ -8,6 +8,8 @@ import (
 	"strings"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type CreateBookingRequest struct {
@@ -55,9 +57,9 @@ func CreateBookingHandler(c *gin.Context) {
 	}
 
 	// 并发锁+冲突检测
-	err = database.DB.Transaction(func(tx *database.DBType) error {
+	err = database.DB.Transaction(func(tx *gorm.DB) error {
 		var existing []models.Booking
-		err := tx.Clauses(database.LockClause).Where("coach_id = ? AND booking_date = ?", req.CoachID, bookingDate).Find(&existing).Error
+		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("coach_id = ? AND booking_date = ?", req.CoachID, bookingDate).Find(&existing).Error
 		if err != nil {
 			return err
 		}
