@@ -25,7 +25,11 @@ export default function LoginPage() {
         message.error('登录失败');
       }
     } catch (e) {
-      message.error(e.response?.data?.message || '登录失败');
+      if (e.response && e.response.data && e.response.data.error) {
+        message.error(e.response.data.error);
+      } else {
+        message.error('用户名或密码错误');
+      }
     } finally {
       setLoading(false);
     }
