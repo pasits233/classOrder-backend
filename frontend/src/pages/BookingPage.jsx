@@ -32,8 +32,8 @@ export default function BookingPage() {
       }
       // 教练默认选自己
       if (role === 'coach') {
-        // 通过 userId 找到自己的 coach.id
-        const myCoach = res.data.find(c => c.user_id === userId);
+        // 通过 userId 找到自己的 coach.id，类型统一为字符串比较
+        const myCoach = res.data.find(c => String(c.user_id) === String(userId));
         if (myCoach) setSelectedCoach(myCoach.id);
       }
     } catch (e) {
