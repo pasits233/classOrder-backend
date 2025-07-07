@@ -65,7 +65,13 @@ export default function App() {
 
   // 如果有角色但在登录页，重定向到首页
   if (role && location.pathname === '/login') {
-    return <Navigate to="/" replace />;
+    // 管理员跳转到/coach，教练跳转到/booking
+    return <Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />;
+  }
+
+  // 教练禁止访问教练管理页面，强制跳转到预约管理
+  if (role === 'coach' && location.pathname !== '/booking') {
+    return <Navigate to="/booking" replace />;
   }
 
   const filteredMenu = menuItems.filter(item => item.roles.includes(role));
@@ -95,10 +101,10 @@ export default function App() {
         <Content style={{ margin: 24, background: '#fff', minHeight: 360 }}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/coach" element={role ? <CoachPage /> : <Navigate to="/login" />} />
-            <Route path="/booking" element={role ? <BookingPage /> : <Navigate to="/login" />} />
-            <Route path="/" element={<Navigate to="/coach" replace />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/coach" element={role === 'admin' ? <CoachPage /> : <Navigate to="/booking" />} />
+            <Route path="/booking" element={<BookingPage />} />
+            <Route path="/" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
+            <Route path="*" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
           </Routes>
         </Content>
       </Layout>
