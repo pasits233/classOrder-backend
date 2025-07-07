@@ -41,7 +41,14 @@ func SetupRouter() *gin.Engine {
 			}
 		}
 
-		// 在这里可以继续添加其他路由组, e.g., bookings
+		// 预约管理路由
+		bookings := api.Group("/bookings", middleware.JWTAuthMiddleware())
+		{
+			bookings.GET("", handlers.ListBookingsHandler)
+			bookings.POST("", handlers.CreateBookingHandler)
+			bookings.PUT(":id", handlers.UpdateBookingHandler)
+			bookings.DELETE(":id", handlers.DeleteBookingHandler)
+		}
 	}
 
 	return r
