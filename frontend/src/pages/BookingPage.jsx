@@ -92,6 +92,29 @@ export default function BookingPage() {
 
   // 新增/编辑预约弹窗的时间段多选
   const [selectedSlots, setSelectedSlots] = useState([]);
+  const [unavailableSlots, setUnavailableSlots] = useState([]);
+
+  // 查询某教练某天已预约的所有时间段
+  const fetchUnavailableSlots = async (coachId, date, editingId) => {
+    if (!coachId || !date) {
+      setUnavailableSlots([]);
+      return;
+    }
+    try {
+      const res = await request.get('/api/bookings', {
+        params: { coach_id: coachId },
+      });
+      let slots = [];
+      res.data.forEach(b => {
+        if (!editingId || b.id !== editingId) {
+          slots = slots.concat(b.time_slots.split(',').map(s => s.trim()));
+        }
+      });
+      setUnavailableSlots(slots);
+    } catch {
+      setUnavailableSlots([]);
+    }
+  };
 
   // 新增/编辑预约
   const handleAdd = () => {
@@ -99,6 +122,10 @@ export default function BookingPage() {
     form.resetFields();
     setSelectedSlots([]);
     setModalOpen(true);
+    // 拉取当前教练和日期下的已预约时间段
+    const coachId = role === 'admin' ? selectedCoach : (coaches.find(c => String(c.user_id) === String(userId))?.id);
+    const date = form.getFieldValue('date') ? form.getFieldValue('date').format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD');
+    fetchUnavailableSlots(coachId, date);
   };
 
   const handleEdit = (record) => {
@@ -109,6 +136,18 @@ export default function BookingPage() {
     });
     setSelectedSlots(record.time_slots ? record.time_slots.split(',').map(s => s.trim()) : []);
     setModalOpen(true);
+    // 拉取当前教练和日期下的已预约时间段（排除自己）
+    const coachId = record.coach_id;
+    const date = record.date;
+    fetchUnavailableSlots(coachId, date, record.id);
+  };
+
+  // 日期或教练变更时，重新拉取不可用时间段
+  const handleDateOrCoachChange = (dateVal) => {
+    const coachId = role === 'admin' ? form.getFieldValue('coach_id') || selectedCoach : (coaches.find(c => String(c.user_id) === String(userId))?.id);
+    const date = dateVal ? dateVal.format('YYYY-MM-DD') : form.getFieldValue('date')?.format('YYYY-MM-DD');
+    fetchUnavailableSlots(coachId, date, editing?.id);
+    setSelectedSlots([]);
   };
 
   // 时间段按钮点击
@@ -199,7 +238,7 @@ export default function BookingPage() {
           </Form.Item>
           {role === 'admin' && (
             <Form.Item name="coach_id" label="教练" rules={[{ required: true, message: '请选择教练' }]}> 
-              <Select>
+              <Select onChange={() => handleDateOrCoachChange()}> 
                 {coaches.map(coach => (
                   <Select.Option key={coach.id} value={coach.id}>{coach.name}</Select.Option>
                 ))}
@@ -207,7 +246,7 @@ export default function BookingPage() {
             </Form.Item>
           )}
           <Form.Item name="date" label="日期" rules={[{ required: true, message: '请选择日期' }]}> 
-            <DatePicker />
+            <DatePicker onChange={handleDateOrCoachChange} />
           </Form.Item>
           <Form.Item label="时间段" required>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -215,8 +254,9 @@ export default function BookingPage() {
                 <Button
                   key={slot}
                   type={selectedSlots.includes(slot) ? 'primary' : 'default'}
-                  onClick={() => handleSlotClick(slot)}
+                  onClick={() => unavailableSlots.includes(slot) ? null : handleSlotClick(slot)}
                   style={{ marginBottom: 8 }}
+                  disabled={unavailableSlots.includes(slot)}
                 >
                   {slot}
                 </Button>
