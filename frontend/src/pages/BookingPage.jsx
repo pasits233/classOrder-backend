@@ -130,7 +130,9 @@ export default function BookingPage() {
         time_slots: selectedSlots.join(', '),
       };
       if (role === 'coach') {
-        data.coach_id = userId;
+        // 通过 userId 找到自己的 coach.id
+        const myCoach = coaches.find(c => String(c.user_id) === String(userId));
+        if (myCoach) data.coach_id = myCoach.id;
       }
       if (editing) {
         await request.put(`/api/bookings/${editing.id}`, data);
