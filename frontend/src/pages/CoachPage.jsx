@@ -40,7 +40,10 @@ export default function CoachPage() {
   const handleEdit = (record) => {
     setEditing(record);
     setAvatarUrl(record.avatar_url || '');
-    form.setFieldsValue(record);
+    form.setFieldsValue({
+      ...record,
+      intro: record.description || '',
+    });
     setModalOpen(true);
   };
 
@@ -59,7 +62,12 @@ export default function CoachPage() {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      let data = { ...values, avatar_url: avatarUrl };
+      let data = {
+        ...values,
+        description: values.intro,
+        avatar_url: avatarUrl,
+      };
+      delete data.intro;
       if (editing) {
         await axios.put(`/api/coaches/${editing.id}`, data, {
           headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
@@ -101,7 +109,7 @@ export default function CoachPage() {
   const columns = [
     { title: '头像', dataIndex: 'avatar_url', render: url => url ? <Image src={url} width={40} /> : '-' },
     { title: '姓名', dataIndex: 'name' },
-    { title: '简介', dataIndex: 'intro' },
+    { title: '简介', dataIndex: 'description' },
     { title: '操作', dataIndex: 'action', render: (_, record) => (
       <>
         <Button type="link" onClick={() => handleEdit(record)}>编辑</Button>
