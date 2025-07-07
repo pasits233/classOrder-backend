@@ -28,11 +28,13 @@ export default function BookingPage() {
       setCoaches(res.data || []);
       // 管理员默认选第一个教练
       if (role === 'admin' && res.data && res.data.length > 0) {
-        setSelectedCoach(res.data[0].user_id);
+        setSelectedCoach(res.data[0].id);
       }
       // 教练默认选自己
       if (role === 'coach') {
-        setSelectedCoach(userId);
+        // 通过 userId 找到自己的 coach.id
+        const myCoach = res.data.find(c => c.user_id === userId);
+        if (myCoach) setSelectedCoach(myCoach.id);
       }
     } catch (e) {
       message.error('获取教练列表失败');
@@ -82,7 +84,7 @@ export default function BookingPage() {
         onChange={setSelectedCoach}
       >
         {coaches.map(coach => (
-          <Select.Option key={coach.user_id} value={coach.user_id}>{coach.name}</Select.Option>
+          <Select.Option key={coach.id} value={coach.id}>{coach.name}</Select.Option>
         ))}
       </Select>
     </div>
@@ -171,7 +173,7 @@ export default function BookingPage() {
                           <b>时间段：</b><Tag color="blue">{item.time_slots}</Tag>
                         </div>
                         <div>
-                          <b>教练：</b>{coaches.find(c => c.user_id === item.coach_id)?.name || '-'}
+                          <b>教练：</b>{coaches.find(c => c.id === item.coach_id)?.name || '-'}
                         </div>
                       </div>
                     </div>
@@ -197,7 +199,7 @@ export default function BookingPage() {
             <Form.Item name="coach_id" label="教练" rules={[{ required: true, message: '请选择教练' }]}> 
               <Select>
                 {coaches.map(coach => (
-                  <Select.Option key={coach.user_id} value={coach.user_id}>{coach.name}</Select.Option>
+                  <Select.Option key={coach.id} value={coach.id}>{coach.name}</Select.Option>
                 ))}
               </Select>
             </Form.Item>
