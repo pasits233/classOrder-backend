@@ -11,7 +11,6 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 var DB *gorm.DB
@@ -39,14 +38,14 @@ func ExecuteMigrations(db *gorm.DB) error {
 
 	// 使用相对于可执行文件的路径
 	migrationPath := filepath.Join("backend", "internal", "database", "migrations.sql")
-	
+
 	// 尝试读取迁移文件
 	migrationSQL, err := os.ReadFile(migrationPath)
 	if err != nil {
 		alternatePath := filepath.Join("internal", "database", "migrations.sql")
 		migrationSQL, err = os.ReadFile(alternatePath)
 		if err != nil {
-			return fmt.Errorf("无法读取迁移文件，尝试的路径: %s 和 %s, 错误: %v", 
+			return fmt.Errorf("无法读取迁移文件，尝试的路径: %s 和 %s, 错误: %v",
 				migrationPath, alternatePath, err)
 		}
 	}
@@ -124,4 +123,4 @@ func InitDB() {
 	}
 
 	log.Println("数据库迁移检查成功。")
-} 
+}
