@@ -1,0 +1,37 @@
+.mobile-admin-root {
+  background: #f5f6fa;
+  min-height: 100vh;
+  padding: 0;
+}
+.mobile-admin-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 16px 8px 16px;
+  background: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+}
+.mobile-admin-navbar-title {
+  color: #222;
+}
+.mobile-admin-logout-btn {
+  color: #ff4d4f;
+  font-weight: 500;
+}
+.mobile-admin-tabs {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  background: #fff;
+  padding: 8px 16px 8px 16px;
+  border-bottom: 1px solid #eee;
+}
+.mobile-admin-tab-btn {
+  min-width: 100px;
+  margin-right: 8px;
+}
+.mobile-admin-content {
+  padding: 16px 0 0 0;
+} 

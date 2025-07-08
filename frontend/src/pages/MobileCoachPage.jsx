@@ -82,21 +82,37 @@ export default function MobileCoachPage() {
           dataSource={coaches}
           renderItem={coach => (
             <Card className="mobile-coach-card" key={coach.id}>
-              <div className="mobile-coach-card-actions">
-                <Button type="link" className="mobile-coach-edit-btn" onClick={() => handleEdit(coach)}>
-                  编辑
-                </Button>
-                <Popconfirm title="确定删除该教练吗？" onConfirm={async () => {
-                  try {
-                    await request.delete(`/api/coaches/${coach.id}`);
-                    message.success('删除成功');
-                    fetchCoaches();
-                  } catch {
-                    message.error('删除失败');
-                  }
-                }} okText="删除" cancelText="取消">
-                  <Button type="link" danger className="mobile-coach-delete-btn">删除</Button>
-                </Popconfirm>
+              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, width: '100%', gap: 0 }}>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <Button
+                    type="text"
+                    block
+                    style={{ color: '#1677ff', fontWeight: 600, fontSize: 16 }}
+                    onClick={() => handleEdit(coach)}
+                  >
+                    编辑
+                  </Button>
+                </div>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <Popconfirm title="确定删除该教练吗？" onConfirm={async () => {
+                    try {
+                      await request.delete(`/api/coaches/${coach.id}`);
+                      message.success('删除成功');
+                      fetchCoaches();
+                    } catch {
+                      message.error('删除失败');
+                    }
+                  }} okText="删除" cancelText="取消">
+                    <Button
+                      type="text"
+                      danger
+                      block
+                      style={{ fontWeight: 600, fontSize: 16 }}
+                    >
+                      删除
+                    </Button>
+                  </Popconfirm>
+                </div>
               </div>
               <div className="mobile-coach-field"><span className="mobile-coach-label">姓名：</span>{coach.name}</div>
               <div className="mobile-coach-field"><span className="mobile-coach-label">简介：</span>{coach.description || coach.intro || '暂无简介'}</div>

@@ -13,6 +13,7 @@ import MobileLoginPage from './pages/MobileLoginPage';
 import MobileCoachPage from './pages/MobileCoachPage';
 import MobileBookingPage from './pages/MobileBookingPage';
 import LoginPage from './pages/LoginPage';
+import MobileAdminPage from './pages/MobileAdminPage';
 import { getRole, logout } from './utils/auth';
 
 const { Header, Sider, Content } = Layout;
@@ -89,14 +90,16 @@ export default function App() {
   }
 
   if (isMobile) {
-    // 移动端：只渲染移动端页面，无PC端布局
+    // 移动端：管理员进入 MobileAdminPage，教练进入 MobileBookingPage
+    if (role === 'admin') {
+      return <MobileAdminPage />;
+    }
     return (
       <Routes>
         <Route path="/login" element={<MobileLoginPage />} />
-        <Route path="/coach" element={role === 'admin' ? <MobileCoachPage /> : <Navigate to="/booking" />} />
         <Route path="/booking" element={<MobileBookingPage />} />
-        <Route path="/" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
-        <Route path="*" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
+        <Route path="/" element={<Navigate to="/booking" replace />} />
+        <Route path="*" element={<Navigate to="/booking" replace />} />
       </Routes>
     );
   }
