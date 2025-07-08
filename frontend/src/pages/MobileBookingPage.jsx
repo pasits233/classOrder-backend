@@ -49,7 +49,7 @@ export default function MobileBookingPage() {
     try {
       const params = {};
       if (role === 'admin') {
-        if (coachId) params.coach_id = coachId;
+        if (coachId !== null && coachId !== undefined) params.coach_id = coachId;
         if (date) params.date = date.format('YYYY-MM-DD');
       } else {
         params.coach_id = coachId;
@@ -205,6 +205,22 @@ export default function MobileBookingPage() {
     </div>
   );
 
+  // 在组件内补充 handleDelete 方法：
+  const handleDelete = async (record) => {
+    Modal.confirm({
+      title: '确认删除该预约？',
+      onOk: async () => {
+        try {
+          await request.delete(`/api/bookings/${record.id}`);
+          message.success('删除成功');
+          fetchBookings(selectedCoach, selectedDate);
+        } catch {
+          message.error('删除失败');
+        }
+      },
+    });
+  };
+
   return (
     <div className="mobile-booking-root">
       {filterBar}
@@ -217,13 +233,23 @@ export default function MobileBookingPage() {
               dataSource={bookings}
               renderItem={item => (
                 <div className="mobile-booking-card">
-                  <Button
-                    type="link"
-                    className="mobile-booking-edit-btn"
-                    onClick={() => handleEdit(item)}
-                  >
-                    编辑
-                  </Button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <Button
+                      type="link"
+                      className="mobile-booking-edit-btn"
+                      onClick={() => handleEdit(item)}
+                    >
+                      编辑
+                    </Button>
+                    <Button
+                      type="link"
+                      danger
+                      className="mobile-booking-delete-btn"
+                      onClick={() => handleDelete(item)}
+                    >
+                      删除
+                    </Button>
+                  </div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">学员：</span>{item.student_name}</div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">时间段：</span><Tag color="blue">{item.time_slots}</Tag></div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">教练：</span>{coaches.find(c => c.id === item.coach_id)?.name || '-'}</div>
