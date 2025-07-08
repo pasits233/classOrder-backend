@@ -73,7 +73,7 @@ export default function MobileCoachProfilePage() {
         name: values.name,
         description: values.description,
         avatar_url: avatarUrl,
-        old_password: oldPassword || undefined,
+        old_password: oldPassword ? String(oldPassword) : undefined,
         password: newPassword || undefined,
       });
       if (res.data && res.data.error) {

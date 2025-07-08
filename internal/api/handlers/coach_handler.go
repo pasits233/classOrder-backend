@@ -136,6 +136,7 @@ type UpdateCoachRequest struct {
 	Description string `json:"description"`
 	AvatarURL   string `json:"avatar_url"`
 	Password    string `json:"password"`
+	OldPassword string `json:"old_password"`
 }
 
 // UpdateCoachHandler 更新教练信息
@@ -283,17 +284,13 @@ func UpdateOwnCoachProfileHandler(c *gin.Context) {
 
 	// 如果有新密码，校验原密码
 	if req.Password != "" {
-		oldPassword := ""
-		if v, ok := body["old_password"].(string); ok {
-			oldPassword = v
+		if req.OldPassword == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "原密码不能为空"})
+			return
 		}
 		var user models.User
 		if err := database.DB.First(&user, coach.UserID).Error; err == nil {
-			if oldPassword == "" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "原密码不能为空"})
-				return
-			}
-			if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword)) != nil {
+			if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)) != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "原密码错误"})
 				return
 			}

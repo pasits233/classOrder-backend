@@ -124,7 +124,14 @@ export default function MobileBookingPage() {
     });
     setSelectedSlots(record.time_slots ? record.time_slots.split(',').map(s => s.trim()) : []);
     setDrawerOpen(true);
-    fetchUnavailableSlots(record.coach_id, dayjs(record.date), record.id);
+    if (role === 'coach') {
+      const myCoach = coaches.find(c => String(c.user_id) === String(userId));
+      if (myCoach) {
+        fetchUnavailableSlots(myCoach.id, dayjs(record.date), record.id);
+      }
+    } else {
+      fetchUnavailableSlots(record.coach_id, dayjs(record.date), record.id);
+    }
   };
 
   // 时间段按钮点击
