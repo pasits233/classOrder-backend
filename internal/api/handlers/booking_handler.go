@@ -110,8 +110,6 @@ func UpdateBookingHandler(c *gin.Context) {
 		return
 	}
 	// 记录原始信息
-	origCoachID := booking.CoachID
-	origDate := booking.BookingDate
 	if req.StudentName != "" {
 		booking.ClientInfo = req.StudentName
 	}
