@@ -172,8 +172,8 @@ func ListBookingsHandler(c *gin.Context) {
 	}
 	if dateStr != "" {
 		if date, err := time.Parse("2006-01-02", dateStr); err == nil {
-			log.Printf("[ListBookings] filter coach_id=%s, date=%s", coachID, date.Format("2006-01-02"))
-			db = db.Where("booking_date = ?", date)
+			nextDay := date.Add(24 * time.Hour)
+			db = db.Where("booking_date >= ? AND booking_date < ?", date, nextDay)
 		}
 	}
 	if err := db.Find(&bookings).Error; err != nil {
