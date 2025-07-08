@@ -13,16 +13,29 @@
 .mobile-coach-card {
   border-radius: 12px;
   box-shadow: 0 2px 8px #eee;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   font-size: 16px;
-  padding: 16px;
+  padding: 20px 16px 16px 16px;
   position: relative;
+  min-height: 120px;
 }
 .mobile-coach-edit-btn {
   position: absolute;
   right: 16px;
-  top: 16px;
+  top: 12px;
   font-size: 15px;
+  color: #1890ff;
+  z-index: 2;
+}
+.mobile-coach-field {
+  margin-bottom: 10px;
+  line-height: 1.7;
+  word-break: break-all;
+}
+.mobile-coach-label {
+  font-weight: bold;
+  color: #333;
+  margin-right: 4px;
 }
 .mobile-coach-input {
   font-size: 16px;

@@ -65,12 +65,12 @@ export default function MobileCoachPage() {
           dataSource={coaches}
           renderItem={coach => (
             <Card className="mobile-coach-card" key={coach.id}>
-              <div><b>姓名：</b>{coach.name}</div>
-              <div><b>简介：</b>{coach.intro}</div>
-              <div><b>用户名：</b>{coach.username}</div>
               <Button type="link" className="mobile-coach-edit-btn" onClick={() => handleEdit(coach)}>
                 编辑
               </Button>
+              <div className="mobile-coach-field"><span className="mobile-coach-label">姓名：</span>{coach.name}</div>
+              <div className="mobile-coach-field"><span className="mobile-coach-label">简介：</span>{coach.intro}</div>
+              <div className="mobile-coach-field"><span className="mobile-coach-label">用户名：</span>{coach.username}</div>
             </Card>
           )}
         />

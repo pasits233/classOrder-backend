@@ -192,16 +192,6 @@ export default function MobileBookingPage() {
               dataSource={bookings}
               renderItem={item => (
                 <div className="mobile-booking-card">
-                  <div>
-                    <b>学员：</b>{item.student_name}
-                  </div>
-                  <div>
-                    <b>时间段：</b>
-                    <Tag color="blue">{item.time_slots}</Tag>
-                  </div>
-                  <div>
-                    <b>教练：</b>{coaches.find(c => c.id === item.coach_id)?.name || '-'}
-                  </div>
                   <Button
                     type="link"
                     className="mobile-booking-edit-btn"
@@ -209,6 +199,9 @@ export default function MobileBookingPage() {
                   >
                     编辑
                   </Button>
+                  <div className="mobile-booking-field"><span className="mobile-booking-label">学员：</span>{item.student_name}</div>
+                  <div className="mobile-booking-field"><span className="mobile-booking-label">时间段：</span><Tag color="blue">{item.time_slots}</Tag></div>
+                  <div className="mobile-booking-field"><span className="mobile-booking-label">教练：</span>{coaches.find(c => c.id === item.coach_id)?.name || '-'}</div>
                 </div>
               )}
             />

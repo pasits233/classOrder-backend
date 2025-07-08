@@ -17,19 +17,32 @@
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px #eee;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 20px 16px 16px 16px;
+  margin-bottom: 20px;
   font-size: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   position: relative;
+  min-height: 120px;
 }
 .mobile-booking-edit-btn {
   position: absolute;
-  right: 12px;
+  right: 16px;
   top: 12px;
   font-size: 15px;
+  color: #1890ff;
+  z-index: 2;
+}
+.mobile-booking-field {
+  margin-bottom: 10px;
+  line-height: 1.7;
+  word-break: break-all;
+}
+.mobile-booking-label {
+  font-weight: bold;
+  color: #333;
+  margin-right: 4px;
 }
 .mobile-booking-add-btn {
   position: fixed;

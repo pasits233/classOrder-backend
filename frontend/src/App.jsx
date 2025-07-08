@@ -52,6 +52,7 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const role = getRole();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     console.log('App mounted');
@@ -73,7 +74,7 @@ export default function App() {
 
   // 如果没有角色且不在登录页，显示登录组件
   if (!role && location.pathname !== '/login') {
-    return <LoginPage />;
+    return isMobile ? <MobileLoginPage /> : <LoginPage />;
   }
 
   // 如果有角色但在登录页，重定向到首页
@@ -87,9 +88,21 @@ export default function App() {
     return <Navigate to="/booking" replace />;
   }
 
-  const filteredMenu = menuItems.filter(item => item.roles.includes(role));
+  if (isMobile) {
+    // 移动端：只渲染移动端页面，无PC端布局
+    return (
+      <Routes>
+        <Route path="/login" element={<MobileLoginPage />} />
+        <Route path="/coach" element={role === 'admin' ? <MobileCoachPage /> : <Navigate to="/booking" />} />
+        <Route path="/booking" element={<MobileBookingPage />} />
+        <Route path="/" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
+        <Route path="*" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
+      </Routes>
+    );
+  }
 
-  const isMobile = useIsMobile();
+  // PC端：原有Layout结构
+  const filteredMenu = menuItems.filter(item => item.roles.includes(role));
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -115,9 +128,9 @@ export default function App() {
         )}
         <Content style={{ margin: 24, background: '#fff', minHeight: 360 }}>
           <Routes>
-            <Route path="/login" element={isMobile ? <MobileLoginPage /> : <LoginPage />} />
-            <Route path="/coach" element={role === 'admin' ? (isMobile ? <MobileCoachPage /> : <CoachPage />) : <Navigate to="/booking" />} />
-            <Route path="/booking" element={isMobile ? <MobileBookingPage /> : <BookingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/coach" element={role === 'admin' ? <CoachPage /> : <Navigate to="/booking" />} />
+            <Route path="/booking" element={<BookingPage />} />
             <Route path="/" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
             <Route path="*" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
           </Routes>
