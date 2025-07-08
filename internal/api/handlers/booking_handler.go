@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"log"
 )
 
 type CreateBookingRequest struct {
@@ -56,6 +57,8 @@ func CreateBookingHandler(c *gin.Context) {
 		return
 	}
 
+	log.Printf("[CreateBooking] coach_id=%d, date=%s, time_slots=%s", req.CoachID, bookingDate.Format("2006-01-02"), req.TimeSlots)
+
 	// 并发锁+冲突检测
 	err = database.DB.Transaction(func(tx *gorm.DB) error {
 		var existing []models.Booking
@@ -63,6 +66,7 @@ func CreateBookingHandler(c *gin.Context) {
 		if err != nil {
 			return err
 		}
+		log.Printf("[CreateBooking] existing bookings: %+v", existing)
 		newRanges := parseTimeRanges(req.TimeSlots)
 		for _, e := range existing {
 			existRanges := parseTimeRanges(e.TimeSlot)
@@ -70,6 +74,7 @@ func CreateBookingHandler(c *gin.Context) {
 				for _, er := range existRanges {
 					if timeRangeOverlap(nr, er) {
 						c.JSON(http.StatusConflict, gin.H{"error": "所选时间段已被预约，请选择其他时间段"})
+						log.Printf("[CreateBooking] conflict: new=%v, exist=%v", nr, er)
 						return errors.New("time slot conflict")
 					}
 				}
@@ -167,6 +172,7 @@ func ListBookingsHandler(c *gin.Context) {
 	}
 	if dateStr != "" {
 		if date, err := time.Parse("2006-01-02", dateStr); err == nil {
+			log.Printf("[ListBookings] filter coach_id=%s, date=%s", coachID, date.Format("2006-01-02"))
 			db = db.Where("booking_date = ?", date)
 		}
 	}

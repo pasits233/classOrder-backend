@@ -82,6 +82,7 @@ export default function MobileBookingPage() {
         }
       });
       setUnavailableSlots(slots);
+      console.log('[fetchUnavailableSlots]', coachId, date, '=>', slots);
     } catch {
       setUnavailableSlots([]);
     }
@@ -132,6 +133,7 @@ export default function MobileBookingPage() {
     } else {
       fetchUnavailableSlots(record.coach_id, dayjs(record.date), record.id);
     }
+    console.log('[handleEdit] record:', record);
   };
 
   // 时间段按钮点击
@@ -150,7 +152,7 @@ export default function MobileBookingPage() {
       let data = {
         ...values,
         date: values.date.format('YYYY-MM-DD'),
-        time_slots: selectedSlots.join(', '),
+        time_slots: selectedSlots.map(s => s.trim()).join(','),
       };
       if (role === 'coach') {
         const myCoach = coaches.find(c => String(c.user_id) === String(userId));
@@ -188,6 +190,7 @@ export default function MobileBookingPage() {
       }
     }
     setSelectedSlots([]);
+    console.log('[handleDateChange] selectedDate:', date);
   };
 
   // 教练变更
