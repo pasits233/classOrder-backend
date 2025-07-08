@@ -262,6 +262,7 @@ export default function BookingPage() {
             <DatePicker className="booking-picker" onChange={handleDateOrCoachChange} />
           </Form.Item>
           <Form.Item label="时间段" required>
+            <div style={{ color: 'red', fontWeight: 'bold', marginBottom: 8 }}>【此处应为按钮宫格，不是输入框，202406验证】</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {TIME_SLOTS.map(slot => (
                 <Button
