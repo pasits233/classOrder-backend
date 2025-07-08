@@ -1,0 +1,68 @@
+/* MobileBookingPage.css */
+.mobile-booking-root {
+  padding: 8px;
+  background: #f7f8fa;
+  min-height: 100vh;
+  position: relative;
+}
+.mobile-booking-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.mobile-booking-list {
+  margin-bottom: 60px;
+}
+.mobile-booking-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #eee;
+  padding: 16px;
+  margin-bottom: 12px;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+.mobile-booking-edit-btn {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font-size: 15px;
+}
+.mobile-booking-add-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px #aaa;
+  font-size: 28px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-booking-drawer .ant-drawer-content {
+  border-radius: 16px 16px 0 0;
+}
+.mobile-booking-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.mobile-booking-slot-btn {
+  min-width: 110px;
+  font-size: 15px;
+  margin-bottom: 8px !important;
+  border-radius: 8px !important;
+}
+.mobile-booking-empty {
+  text-align: center;
+  color: #888;
+  margin-top: 32px;
+  font-size: 18px;
+} 
