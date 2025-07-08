@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import request from '../utils/request';
 import { getRole, getUserId } from '../utils/auth';
 import './MobileBookingPage.css';
+import { useNavigate } from 'react-router-dom';
 
 const TIME_SLOTS = [];
 for (let hour = 9; hour < 18; hour++) {
@@ -25,6 +26,7 @@ export default function MobileBookingPage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const role = getRole();
   const userId = getUserId();
+  const navigate = useNavigate();
 
   // 获取教练列表
   const fetchCoaches = async () => {
@@ -175,9 +177,15 @@ export default function MobileBookingPage() {
     setSelectedSlots([]);
   };
 
+  // 在顶部加个人中心按钮（仅教练）
+  const profileBtn = role === 'coach' ? (
+    <Button type="link" style={{ float: 'right', marginTop: 8 }} onClick={() => navigate('/profile')}>个人中心</Button>
+  ) : null;
+
   // 顶部筛选器
   const filterBar = (
     <div className="mobile-booking-header">
+      {profileBtn}
       <DatePicker
         value={selectedDate}
         onChange={handleDateChange}

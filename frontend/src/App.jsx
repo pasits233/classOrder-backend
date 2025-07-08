@@ -14,6 +14,7 @@ import MobileCoachPage from './pages/MobileCoachPage';
 import MobileBookingPage from './pages/MobileBookingPage';
 import LoginPage from './pages/LoginPage';
 import MobileAdminPage from './pages/MobileAdminPage';
+import CoachProfilePage from './pages/CoachProfilePage';
 import { getRole, logout } from './utils/auth';
 
 const { Header, Sider, Content } = Layout;
@@ -30,6 +31,12 @@ const menuItems = [
     icon: <CalendarOutlined />,
     label: '预约管理',
     roles: ['admin', 'coach'],
+  },
+  {
+    key: 'profile',
+    icon: <UserOutlined />,
+    label: '个人中心',
+    roles: ['coach'],
   },
   {
     key: 'logout',
@@ -134,6 +141,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/coach" element={role === 'admin' ? <CoachPage /> : <Navigate to="/booking" />} />
             <Route path="/booking" element={<BookingPage />} />
+            <Route path="/profile" element={<CoachProfilePage />} />
             <Route path="/" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
             <Route path="*" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
           </Routes>
