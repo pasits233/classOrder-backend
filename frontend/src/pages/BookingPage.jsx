@@ -3,6 +3,7 @@ import { Card, Button, Select, message, Spin, List, Tag, Modal, Form, Input, Dat
 import request from '../utils/request';
 import dayjs from 'dayjs';
 import { getRole, getUserId } from '../utils/auth';
+import './BookingPage.css';
 
 const TIME_SLOTS = [];
 for (let hour = 9; hour < 18; hour++) {
@@ -195,20 +196,21 @@ export default function BookingPage() {
       </Button>
       {loading ? <Spin /> : (
         Object.keys(bookingsByDate).length === 0 ? (
-          <Card>暂无预约</Card>
+          <Card className="booking-card">暂无预约</Card>
         ) : (
           Object.keys(bookingsByDate).sort().map(date => (
-            <Card key={date} title={date} style={{ marginBottom: 16 }}>
+            <Card key={date} title={date} style={{ marginBottom: 16 }} className="booking-card">
               <List
                 dataSource={bookingsByDate[date]}
                 renderItem={item => (
                   <List.Item
+                    className="booking-list-item"
                     actions={[
                       <Button type="link" onClick={() => handleEdit(item)} key="edit">编辑</Button>
                     ]}
                   >
                     <div style={{ width: '100%' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="booking-list-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <b>学员：</b>{item.student_name} &nbsp;
                           <b>时间段：</b><Tag color="blue">{item.time_slots}</Tag>
@@ -234,11 +236,11 @@ export default function BookingPage() {
       >
         <Form form={form} layout="vertical">
           <Form.Item name="student_name" label="学员姓名" rules={[{ required: true, message: '请输入学员姓名' }]}> 
-            <Input />
+            <Input className="booking-input" />
           </Form.Item>
           {role === 'admin' && (
             <Form.Item name="coach_id" label="教练" rules={[{ required: true, message: '请选择教练' }]}> 
-              <Select onChange={() => handleDateOrCoachChange()}> 
+              <Select className="booking-select" onChange={() => handleDateOrCoachChange()}> 
                 {coaches.map(coach => (
                   <Select.Option key={coach.id} value={coach.id}>{coach.name}</Select.Option>
                 ))}
@@ -246,7 +248,7 @@ export default function BookingPage() {
             </Form.Item>
           )}
           <Form.Item name="date" label="日期" rules={[{ required: true, message: '请选择日期' }]}> 
-            <DatePicker onChange={handleDateOrCoachChange} />
+            <DatePicker className="booking-picker" onChange={handleDateOrCoachChange} />
           </Form.Item>
           <Form.Item label="时间段" required>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -257,6 +259,7 @@ export default function BookingPage() {
                   onClick={() => unavailableSlots.includes(slot) ? null : handleSlotClick(slot)}
                   style={{ marginBottom: 8 }}
                   disabled={unavailableSlots.includes(slot)}
+                  className="booking-slot-btn"
                 >
                   {slot}
                 </Button>
