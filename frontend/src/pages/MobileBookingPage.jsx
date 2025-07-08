@@ -31,9 +31,7 @@ export default function MobileBookingPage() {
     try {
       const res = await request.get('/api/coaches');
       setCoaches(res.data || []);
-      if (role === 'admin' && res.data && res.data.length > 0) {
-        setSelectedCoach(res.data[0].id);
-      }
+      // 管理员不再默认选中第一个教练，selectedCoach 保持 null
       if (role === 'coach') {
         const myCoach = res.data.find(c => String(c.user_id) === String(userId));
         if (myCoach) setSelectedCoach(myCoach.id);
@@ -234,21 +232,25 @@ export default function MobileBookingPage() {
               renderItem={item => (
                 <div className="mobile-booking-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <Button
-                      type="link"
-                      className="mobile-booking-edit-btn"
-                      onClick={() => handleEdit(item)}
-                    >
-                      编辑
-                    </Button>
-                    <Button
-                      type="link"
-                      danger
-                      className="mobile-booking-delete-btn"
-                      onClick={() => handleDelete(item)}
-                    >
-                      删除
-                    </Button>
+                    <div style={{ flex: 1, textAlign: 'left' }}>
+                      <Button
+                        type="link"
+                        className="mobile-booking-edit-btn"
+                        onClick={() => handleEdit(item)}
+                      >
+                        编辑
+                      </Button>
+                    </div>
+                    <div style={{ flex: 1, textAlign: 'right' }}>
+                      <Button
+                        type="link"
+                        danger
+                        className="mobile-booking-delete-btn"
+                        onClick={() => handleDelete(item)}
+                      >
+                        删除
+                      </Button>
+                    </div>
                   </div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">学员：</span>{item.student_name}</div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">时间段：</span><Tag color="blue">{item.time_slots}</Tag></div>
