@@ -34,18 +34,23 @@ export default function MobileCoachPage() {
 
   const handleEdit = (coach) => {
     setEditing(coach);
-    form.setFieldsValue(coach);
+    form.setFieldsValue({
+      ...coach,
+      intro: coach.description || coach.intro || '',
+    });
     setModalOpen(true);
   };
 
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      const data = { ...values, description: values.intro };
+      delete data.intro;
       if (editing) {
-        await request.put(`/api/coaches/${editing.id}`, values);
+        await request.put(`/api/coaches/${editing.id}`, data);
         message.success('修改成功');
       } else {
-        await request.post('/api/coaches', values);
+        await request.post('/api/coaches', data);
         message.success('添加成功');
       }
       setModalOpen(false);
@@ -69,7 +74,7 @@ export default function MobileCoachPage() {
                 编辑
               </Button>
               <div className="mobile-coach-field"><span className="mobile-coach-label">姓名：</span>{coach.name}</div>
-              <div className="mobile-coach-field"><span className="mobile-coach-label">简介：</span>{coach.intro}</div>
+              <div className="mobile-coach-field"><span className="mobile-coach-label">简介：</span>{coach.description || coach.intro || '暂无简介'}</div>
               <div className="mobile-coach-field"><span className="mobile-coach-label">用户名：</span>{coach.username}</div>
             </Card>
           )}
