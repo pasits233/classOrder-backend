@@ -41,4 +41,27 @@
   font-size: 16px;
   height: 44px;
   border-radius: 8px;
+}
+.mobile-coach-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px 8px 8px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 12px;
+}
+.mobile-coach-navbar-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #222;
+}
+.mobile-coach-navbar-actions {
+  display: flex;
+  gap: 8px;
+}
+.mobile-coach-navbar-link {
+  font-size: 16px;
+  color: #1890ff;
+  padding: 0 4px;
 } 

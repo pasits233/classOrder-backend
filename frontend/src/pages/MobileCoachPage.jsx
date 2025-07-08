@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Button, List, Modal, Form, Input, message, Spin } from 'antd';
 import request from '../utils/request';
+import { useNavigate } from 'react-router-dom';
+import { logout, getRole } from '../utils/auth';
 import './MobileCoachPage.css';
 
 export default function MobileCoachPage() {
+  const navigate = useNavigate();
+  const role = getRole();
   const [coaches, setCoaches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -62,6 +66,13 @@ export default function MobileCoachPage() {
 
   return (
     <div className="mobile-coach-root">
+      <div className="mobile-coach-navbar">
+        <span className="mobile-coach-navbar-title">教练管理</span>
+        <div className="mobile-coach-navbar-actions">
+          <Button type="link" className="mobile-coach-navbar-link" onClick={() => navigate('/booking')}>预约管理</Button>
+          <Button type="link" className="mobile-coach-navbar-link" onClick={() => { logout(); navigate('/login'); }}>退出登录</Button>
+        </div>
+      </div>
       <Button type="primary" block className="mobile-coach-add-btn" onClick={handleAdd}>
         新增教练
       </Button>
