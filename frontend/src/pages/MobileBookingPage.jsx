@@ -22,7 +22,7 @@ export default function MobileBookingPage() {
   const [form] = Form.useForm();
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [unavailableSlots, setUnavailableSlots] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [selectedDate, setSelectedDate] = useState(null);
   const role = getRole();
   const userId = getUserId();
 
@@ -231,27 +231,26 @@ export default function MobileBookingPage() {
               dataSource={bookings}
               renderItem={item => (
                 <div className="mobile-booking-card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ flex: 1, textAlign: 'left' }}>
-                      <Button
-                        type="link"
-                        className="mobile-booking-edit-btn"
-                        onClick={() => handleEdit(item)}
-                      >
-                        编辑
-                      </Button>
-                    </div>
-                    <div style={{ flex: 1, textAlign: 'right' }}>
-                      <Button
-                        type="link"
-                        danger
-                        className="mobile-booking-delete-btn"
-                        onClick={() => handleDelete(item)}
-                      >
-                        删除
-                      </Button>
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+                    <Button
+                      type="link"
+                      className="mobile-booking-edit-btn"
+                      style={{ padding: 0, minWidth: 48 }}
+                      onClick={() => handleEdit(item)}
+                    >
+                      编辑
+                    </Button>
+                    <Button
+                      type="link"
+                      danger
+                      className="mobile-booking-delete-btn"
+                      style={{ padding: 0, minWidth: 48 }}
+                      onClick={() => handleDelete(item)}
+                    >
+                      删除
+                    </Button>
                   </div>
+                  <div className="mobile-booking-field"><span className="mobile-booking-label">日期：</span>{item.date}</div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">学员：</span>{item.student_name}</div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">时间段：</span><Tag color="blue">{item.time_slots}</Tag></div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">教练：</span>{coaches.find(c => c.id === item.coach_id)?.name || '-'}</div>
