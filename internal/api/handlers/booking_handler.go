@@ -150,9 +150,7 @@ func ListBookingsHandler(c *gin.Context) {
 		db = db.Where("coach_id = ?", coachID)
 	}
 	if dateStr != "" {
-		if date, err := time.Parse("2006-01-02", dateStr); err == nil {
-			db = db.Where("booking_date = ?", date)
-		}
+		db = db.Where("booking_date = ?", dateStr)
 	}
 	if err := db.Find(&bookings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve bookings"})
