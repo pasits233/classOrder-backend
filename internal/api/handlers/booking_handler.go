@@ -109,6 +109,9 @@ func UpdateBookingHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
+	// 记录原始信息
+	origCoachID := booking.CoachID
+	origDate := booking.BookingDate
 	if req.StudentName != "" {
 		booking.ClientInfo = req.StudentName
 	}
@@ -122,6 +125,21 @@ func UpdateBookingHandler(c *gin.Context) {
 	}
 	if req.TimeSlots != "" {
 		booking.TimeSlot = req.TimeSlots
+	}
+	// 冲突校验：查找同教练同天除自己外的所有预约，判断时间段是否重叠
+	var existing []models.Booking
+	database.DB.Where("coach_id = ? AND booking_date = ? AND id != ?", booking.CoachID, booking.BookingDate, booking.ID).Find(&existing)
+	newRanges := parseTimeRanges(booking.TimeSlot)
+	for _, e := range existing {
+		existRanges := parseTimeRanges(e.TimeSlot)
+		for _, nr := range newRanges {
+			for _, er := range existRanges {
+				if timeRangeOverlap(nr, er) {
+					c.JSON(http.StatusConflict, gin.H{"error": "所选时间段已被预约，请选择其他时间段"})
+					return
+				}
+			}
+		}
 	}
 	if err := database.DB.Save(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update booking"})
@@ -150,7 +168,9 @@ func ListBookingsHandler(c *gin.Context) {
 		db = db.Where("coach_id = ?", coachID)
 	}
 	if dateStr != "" {
-		db = db.Where("booking_date = ?", dateStr)
+		if date, err := time.Parse("2006-01-02", dateStr); err == nil {
+			db = db.Where("booking_date = ?", date)
+		}
 	}
 	if err := db.Find(&bookings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve bookings"})
