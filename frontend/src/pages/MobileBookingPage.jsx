@@ -54,9 +54,10 @@ export default function MobileBookingPage() {
         if (date) params.date = date.format('YYYY-MM-DD');
       }
       const res = await request.get('/api/bookings', { params });
-      setBookings(res.data || []);
+      setBookings(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       message.error('获取预约列表失败');
+      setBookings([]);
     } finally {
       setLoading(false);
     }
@@ -231,24 +232,28 @@ export default function MobileBookingPage() {
               dataSource={bookings}
               renderItem={item => (
                 <div className="mobile-booking-card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8 }}>
-                    <Button
-                      type="link"
-                      className="mobile-booking-edit-btn"
-                      style={{ padding: 0, minWidth: 48 }}
-                      onClick={() => handleEdit(item)}
-                    >
-                      编辑
-                    </Button>
-                    <Button
-                      type="link"
-                      danger
-                      className="mobile-booking-delete-btn"
-                      style={{ padding: 0, minWidth: 48 }}
-                      onClick={() => handleDelete(item)}
-                    >
-                      删除
-                    </Button>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, width: '100%' }}>
+                    <span style={{ flex: 1, textAlign: 'left' }}>
+                      <Button
+                        type="link"
+                        className="mobile-booking-edit-btn"
+                        style={{ padding: 0, minWidth: 48 }}
+                        onClick={() => handleEdit(item)}
+                      >
+                        编辑
+                      </Button>
+                    </span>
+                    <span style={{ flex: 1, textAlign: 'right' }}>
+                      <Button
+                        type="link"
+                        danger
+                        className="mobile-booking-delete-btn"
+                        style={{ padding: 0, minWidth: 48 }}
+                        onClick={() => handleDelete(item)}
+                      >
+                        删除
+                      </Button>
+                    </span>
                   </div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">日期：</span>{item.date}</div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">学员：</span>{item.student_name}</div>
