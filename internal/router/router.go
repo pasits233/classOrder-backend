@@ -49,6 +49,10 @@ func SetupRouter() *gin.Engine {
 			bookings.PUT(":id", handlers.UpdateBookingHandler)
 			bookings.DELETE(":id", handlers.DeleteBookingHandler)
 		}
+
+		// 教练自助管理个人信息（仅需登录）
+		api.GET("/coach/profile", middleware.JWTAuthMiddleware(), handlers.GetOwnCoachProfileHandler)
+		api.PUT("/coach/profile", middleware.JWTAuthMiddleware(), handlers.UpdateOwnCoachProfileHandler)
 	}
 
 	return r

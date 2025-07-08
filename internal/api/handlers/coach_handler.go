@@ -209,3 +209,85 @@ func DeleteCoachHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Coach deleted successfully"})
 }
+
+// 新增：教练自助获取个人信息
+func GetOwnCoachProfileHandler(c *gin.Context) {
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+	userID, ok := userIDVal.(float64) // JWT 默认 float64
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	var coach models.Coach
+	if err := database.DB.Preload("User").Where("user_id = ?", uint(userID)).First(&coach).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Coach not found"})
+		return
+	}
+
+	response := gin.H{
+		"id":          coach.ID,
+		"user_id":     coach.UserID,
+		"username":    coach.User.Username,
+		"name":        coach.Name,
+		"description": coach.Description,
+		"avatar_url":  coach.AvatarURL,
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// 新增：教练自助修改个人信息
+func UpdateOwnCoachProfileHandler(c *gin.Context) {
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+	userID, ok := userIDVal.(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	var coach models.Coach
+	if err := database.DB.Preload("User").Where("user_id = ?", uint(userID)).First(&coach).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Coach not found"})
+		return
+	}
+
+	var req UpdateCoachRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	if req.Name != "" {
+		coach.Name = req.Name
+	}
+	if req.Description != "" {
+		coach.Description = req.Description
+	}
+	if req.AvatarURL != "" {
+		coach.AvatarURL = req.AvatarURL
+	}
+	if err := database.DB.Save(&coach).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update coach"})
+		return
+	}
+
+	// 如果有新密码，更新 user 表
+	if req.Password != "" {
+		var user models.User
+		if err := database.DB.First(&user, coach.UserID).Error; err == nil {
+			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+			user.PasswordHash = string(hashedPassword)
+			database.DB.Save(&user)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
+}
