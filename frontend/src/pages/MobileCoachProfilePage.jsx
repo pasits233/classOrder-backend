@@ -69,21 +69,30 @@ export default function MobileCoachProfilePage() {
         }
       }
       setSaving(true);
-      await request.put('/api/coach/profile', {
+      const res = await request.put('/api/coach/profile', {
         name: values.name,
         description: values.description,
         avatar_url: avatarUrl,
         old_password: oldPassword || undefined,
         password: newPassword || undefined,
       });
+      if (res.data && res.data.error) {
+        message.error(res.data.error);
+        setSaving(false);
+        return;
+      }
       message.success('保存成功');
       fetchProfile();
       setOldPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
       form.setFieldValue('password', '');
-    } catch {
-      message.error('保存失败');
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.error) {
+        message.error(e.response.data.error);
+      } else {
+        message.error('保存失败');
+      }
     } finally {
       setSaving(false);
     }

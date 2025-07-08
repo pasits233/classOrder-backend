@@ -113,23 +113,7 @@ export default function MobileBookingPage() {
     form.resetFields();
     setSelectedSlots([]);
     setDrawerOpen(true);
-    if (role === 'coach') {
-      const myCoach = coaches.find(c => String(c.user_id) === String(userId));
-      const date = form.getFieldValue('date');
-      if (myCoach && date) {
-        fetchUnavailableSlots(myCoach.id, date.format('YYYY-MM-DD'));
-      } else {
-        setUnavailableSlots([]);
-      }
-    } else {
-      const coachId = selectedCoach;
-      const date = form.getFieldValue('date');
-      if (coachId && date) {
-        fetchUnavailableSlots(coachId, date.format('YYYY-MM-DD'));
-      } else {
-        setUnavailableSlots([]);
-      }
-    }
+    setUnavailableSlots([]);
   };
 
   const handleEdit = (record) => {
@@ -337,53 +321,26 @@ export default function MobileBookingPage() {
             </Form.Item>
           )}
           <Form.Item name="date" label="日期" rules={[{ required: true, message: '请选择日期' }]}> 
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker style={{ width: '100%' }} value={selectedDate} onChange={handleDateChange} />
           </Form.Item>
           <Form.Item label="时间段" required>
-            {(() => {
-              if (role === 'coach') {
-                const date = selectedDate;
-                if (!date) {
-                  return <div style={{ color: 'red' }}>请先选择日期</div>;
-                }
-                return (
-                  <div className="mobile-booking-slots">
-                    {TIME_SLOTS.map(slot => (
-                      <Button
-                        key={slot}
-                        type={selectedSlots.includes(slot) ? 'primary' : 'default'}
-                        onClick={() => unavailableSlots.includes(slot) ? null : handleSlotClick(slot)}
-                        disabled={unavailableSlots.includes(slot)}
-                        className="mobile-booking-slot-btn"
-                      >
-                        {slot}
-                      </Button>
-                    ))}
-                  </div>
-                );
-              } else {
-                const coachId = selectedCoach;
-                const date = selectedDate;
-                if (!coachId || !date) {
-                  return <div style={{ color: 'red' }}>请先选择教练和日期</div>;
-                }
-                return (
-                  <div className="mobile-booking-slots">
-                    {TIME_SLOTS.map(slot => (
-                      <Button
-                        key={slot}
-                        type={selectedSlots.includes(slot) ? 'primary' : 'default'}
-                        onClick={() => unavailableSlots.includes(slot) ? null : handleSlotClick(slot)}
-                        disabled={unavailableSlots.includes(slot)}
-                        className="mobile-booking-slot-btn"
-                      >
-                        {slot}
-                      </Button>
-                    ))}
-                  </div>
-                );
-              }
-            })()}
+            {selectedDate ? (
+              <div className="mobile-booking-slots">
+                {TIME_SLOTS.map(slot => (
+                  <Button
+                    key={slot}
+                    type={selectedSlots.includes(slot) ? 'primary' : 'default'}
+                    onClick={() => unavailableSlots.includes(slot) ? null : handleSlotClick(slot)}
+                    disabled={unavailableSlots.includes(slot)}
+                    className="mobile-booking-slot-btn"
+                  >
+                    {slot}
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ color: 'red' }}>请先选择日期</div>
+            )}
             {selectedSlots.length === 0 && <div style={{ color: 'red', marginTop: 4 }}>请选择至少一个时间段</div>}
           </Form.Item>
         </Form>

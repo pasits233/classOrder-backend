@@ -260,10 +260,12 @@ func UpdateOwnCoachProfileHandler(c *gin.Context) {
 	}
 
 	var req UpdateCoachRequest
+	var body map[string]interface{}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
+	_ = c.ShouldBindJSON(&body)
 
 	if req.Name != "" {
 		coach.Name = req.Name
@@ -281,18 +283,9 @@ func UpdateOwnCoachProfileHandler(c *gin.Context) {
 
 	// 如果有新密码，校验原密码
 	if req.Password != "" {
-		oldPassword := c.PostForm("old_password")
-		if oldPassword == "" {
-			oldPassword = c.Query("old_password")
-		}
-		if oldPassword == "" {
-			// 尝试从 JSON 体中获取
-			var body map[string]interface{}
-			if err := c.ShouldBindJSON(&body); err == nil {
-				if v, ok := body["old_password"].(string); ok {
-					oldPassword = v
-				}
-			}
+		oldPassword := ""
+		if v, ok := body["old_password"].(string); ok {
+			oldPassword = v
 		}
 		var user models.User
 		if err := database.DB.First(&user, coach.UserID).Error; err == nil {
