@@ -48,10 +48,10 @@ export default function MobileBookingPage() {
       const params = {};
       if (role === 'admin') {
         if (coachId !== null && coachId !== undefined) params.coach_id = coachId;
-        if (date) params.date = date.format('YYYY-MM-DD');
+        if (date) params.date = dayjs(date).format('YYYY-MM-DD');
       } else {
         params.coach_id = coachId;
-        if (date) params.date = date.format('YYYY-MM-DD');
+        if (date) params.date = dayjs(date).format('YYYY-MM-DD');
       }
       const res = await request.get('/api/bookings', { params });
       setBookings(Array.isArray(res.data) ? res.data : []);
@@ -232,28 +232,28 @@ export default function MobileBookingPage() {
               dataSource={bookings}
               renderItem={item => (
                 <div className="mobile-booking-card">
-                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, width: '100%' }}>
-                    <span style={{ flex: 1, textAlign: 'left' }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, width: '100%', gap: 0 }}>
+                    <div style={{ flex: 1, textAlign: 'left' }}>
                       <Button
                         type="link"
                         className="mobile-booking-edit-btn"
-                        style={{ padding: 0, minWidth: 48 }}
+                        style={{ width: '100%', padding: 0, fontWeight: 600, color: '#1677ff' }}
                         onClick={() => handleEdit(item)}
                       >
                         编辑
                       </Button>
-                    </span>
-                    <span style={{ flex: 1, textAlign: 'right' }}>
+                    </div>
+                    <div style={{ flex: 1, textAlign: 'right' }}>
                       <Button
                         type="link"
                         danger
                         className="mobile-booking-delete-btn"
-                        style={{ padding: 0, minWidth: 48 }}
+                        style={{ width: '100%', padding: 0, fontWeight: 600 }}
                         onClick={() => handleDelete(item)}
                       >
                         删除
                       </Button>
-                    </span>
+                    </div>
                   </div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">日期：</span>{item.date}</div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">学员：</span>{item.student_name}</div>

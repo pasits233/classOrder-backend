@@ -144,9 +144,15 @@ func DeleteBookingHandler(c *gin.Context) {
 func ListBookingsHandler(c *gin.Context) {
 	var bookings []models.Booking
 	coachID := c.Query("coach_id")
+	dateStr := c.Query("date")
 	db := database.DB
 	if coachID != "" {
 		db = db.Where("coach_id = ?", coachID)
+	}
+	if dateStr != "" {
+		if date, err := time.Parse("2006-01-02", dateStr); err == nil {
+			db = db.Where("booking_date = ?", date)
+		}
 	}
 	if err := db.Find(&bookings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve bookings"})
