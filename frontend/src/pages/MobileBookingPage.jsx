@@ -73,7 +73,7 @@ export default function MobileBookingPage() {
     }
     try {
       const res = await request.get('/api/bookings', {
-        params: { coach_id: coachId, date: date.format('YYYY-MM-DD') },
+        params: { coach_id: coachId, date: typeof date === 'string' ? date : date.format('YYYY-MM-DD') },
       });
       let slots = [];
       res.data.forEach(b => {

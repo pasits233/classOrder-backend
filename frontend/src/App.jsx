@@ -15,6 +15,7 @@ import MobileBookingPage from './pages/MobileBookingPage';
 import LoginPage from './pages/LoginPage';
 import MobileAdminPage from './pages/MobileAdminPage';
 import CoachProfilePage from './pages/CoachProfilePage';
+import MobileCoachProfilePage from './pages/MobileCoachProfilePage';
 import { getRole, logout } from './utils/auth';
 
 const { Header, Sider, Content } = Layout;
@@ -105,6 +106,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<MobileLoginPage />} />
         <Route path="/booking" element={<MobileBookingPage />} />
+        <Route path="/profile" element={<MobileCoachProfilePage />} />
         <Route path="/" element={<Navigate to="/booking" replace />} />
         <Route path="*" element={<Navigate to="/booking" replace />} />
       </Routes>

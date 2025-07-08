@@ -120,7 +120,7 @@ export default function BookingPage() {
     }
     try {
       const res = await request.get('/api/bookings', {
-        params: { coach_id: coachId },
+        params: { coach_id: coachId, date: typeof date === 'string' ? date : date.format('YYYY-MM-DD') },
       });
       let slots = [];
       res.data.forEach(b => {
