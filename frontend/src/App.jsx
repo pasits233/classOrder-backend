@@ -93,7 +93,7 @@ export default function App() {
   }
 
   // 教练禁止访问教练管理页面，强制跳转到预约管理
-  if (role === 'coach' && location.pathname !== '/booking') {
+  if (role === 'coach' && location.pathname === '/coach') {
     return <Navigate to="/booking" replace />;
   }
 
