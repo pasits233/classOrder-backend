@@ -43,12 +43,18 @@ export default function BookingPage() {
   };
 
   // 获取预约列表
-  const fetchBookings = async (coachId) => {
+  const fetchBookings = async (coachId, date) => {
     setLoading(true);
     try {
-      const res = await request.get('/api/bookings', {
-        params: coachId ? { coach_id: coachId } : {},
-      });
+      const params = {};
+      if (role === 'admin') {
+        if (coachId) params.coach_id = coachId;
+        if (date) params.date = date.format('YYYY-MM-DD');
+      } else {
+        params.coach_id = coachId;
+        if (date) params.date = date.format('YYYY-MM-DD');
+      }
+      const res = await request.get('/api/bookings', { params });
       setBookings(res.data || []);
     } catch (e) {
       message.error('获取预约列表失败');
@@ -63,9 +69,9 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (selectedCoach) {
-      fetchBookings(selectedCoach);
+      fetchBookings(selectedCoach, selectedDate);
     }
-  }, [selectedCoach]);
+  }, [selectedCoach, selectedDate]);
 
   // 以日期分组
   const bookingsByDate = bookings.reduce((acc, cur) => {
@@ -75,25 +81,37 @@ export default function BookingPage() {
     return acc;
   }, {});
 
-  // 教练选择器
-  const coachSelector = role === 'admin' ? (
-    <div style={{ marginBottom: 16 }}>
-      <span style={{ marginRight: 8 }}>教练：</span>
-      <Select
-        style={{ width: 200 }}
-        value={selectedCoach}
-        onChange={setSelectedCoach}
-      >
-        {coaches.map(coach => (
-          <Select.Option key={coach.id} value={coach.id}>{coach.name}</Select.Option>
-        ))}
-      </Select>
+  // 顶部筛选器
+  const filterBar = (
+    <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+      <DatePicker
+        value={selectedDate}
+        onChange={setSelectedDate}
+        style={{ width: 180 }}
+        placeholder="选择日期"
+        allowClear
+      />
+      {role === 'admin' && (
+        <Select
+          style={{ width: 200 }}
+          value={selectedCoach}
+          onChange={setSelectedCoach}
+          allowClear
+          placeholder="全部教练"
+        >
+          <Select.Option value={null}>全部教练</Select.Option>
+          {coaches.map(coach => (
+            <Select.Option key={coach.id} value={coach.id}>{coach.name}</Select.Option>
+          ))}
+        </Select>
+      )}
     </div>
-  ) : null;
+  );
 
   // 新增/编辑预约弹窗的时间段多选
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [unavailableSlots, setUnavailableSlots] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // 查询某教练某天已预约的所有时间段
   const fetchUnavailableSlots = async (coachId, date, editingId) => {
@@ -182,7 +200,7 @@ export default function BookingPage() {
         message.success('添加成功');
       }
       setModalOpen(false);
-      fetchBookings(selectedCoach);
+      fetchBookings(selectedCoach, selectedDate);
     } catch (e) {
       message.error('保存失败');
     }
@@ -190,41 +208,34 @@ export default function BookingPage() {
 
   return (
     <div>
-      {coachSelector}
+      {filterBar}
       <Button type="primary" style={{ marginBottom: 16 }} onClick={handleAdd}>
         新增预约
       </Button>
       {loading ? <Spin /> : (
-        Object.keys(bookingsByDate).length === 0 ? (
+        bookings.length === 0 ? (
           <Card className="booking-card">暂无预约</Card>
         ) : (
-          Object.keys(bookingsByDate).sort().map(date => (
-            <Card key={date} title={date} style={{ marginBottom: 16 }} className="booking-card">
-              <List
-                dataSource={bookingsByDate[date]}
-                renderItem={item => (
-                  <List.Item
-                    className="booking-list-item"
-                    actions={[
-                      <Button type="link" onClick={() => handleEdit(item)} key="edit">编辑</Button>
-                    ]}
-                  >
-                    <div style={{ width: '100%' }}>
-                      <div className="booking-list-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <b>学员：</b>{item.student_name} &nbsp;
-                          <b>时间段：</b><Tag color="blue">{item.time_slots}</Tag>
-                        </div>
-                        <div>
-                          <b>教练：</b>{coaches.find(c => c.id === item.coach_id)?.name || '-'}
-                        </div>
-                      </div>
-                    </div>
-                  </List.Item>
-                )}
-              />
-            </Card>
-          ))
+          <List
+            dataSource={bookings}
+            renderItem={item => (
+              <Card className="booking-card" style={{ marginBottom: 16 }}>
+                <div className="booking-list-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <b>日期：</b>{item.date} &nbsp;
+                    <b>时间段：</b><Tag color="blue">{item.time_slots}</Tag>
+                  </div>
+                  <div>
+                    <b>学员：</b>{item.student_name}
+                  </div>
+                  <div>
+                    <b>教练：</b>{coaches.find(c => c.id === item.coach_id)?.name || '-'}
+                  </div>
+                  <Button type="link" onClick={() => handleEdit(item)} key="edit">编辑</Button>
+                </div>
+              </Card>
+            )}
+          />
         )
       )}
       <Modal

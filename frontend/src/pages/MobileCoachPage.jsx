@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Button, List, Modal, Form, Input, message, Spin } from 'antd';
+import { Popconfirm } from 'antd';
 import request from '../utils/request';
 import { useNavigate } from 'react-router-dom';
 import { logout, getRole } from '../utils/auth';
@@ -81,9 +82,22 @@ export default function MobileCoachPage() {
           dataSource={coaches}
           renderItem={coach => (
             <Card className="mobile-coach-card" key={coach.id}>
-              <Button type="link" className="mobile-coach-edit-btn" onClick={() => handleEdit(coach)}>
-                编辑
-              </Button>
+              <div className="mobile-coach-card-actions">
+                <Button type="link" className="mobile-coach-edit-btn" onClick={() => handleEdit(coach)}>
+                  编辑
+                </Button>
+                <Popconfirm title="确定删除该教练吗？" onConfirm={async () => {
+                  try {
+                    await request.delete(`/api/coaches/${coach.id}`);
+                    message.success('删除成功');
+                    fetchCoaches();
+                  } catch {
+                    message.error('删除失败');
+                  }
+                }} okText="删除" cancelText="取消">
+                  <Button type="link" danger className="mobile-coach-delete-btn">删除</Button>
+                </Popconfirm>
+              </div>
               <div className="mobile-coach-field"><span className="mobile-coach-label">姓名：</span>{coach.name}</div>
               <div className="mobile-coach-field"><span className="mobile-coach-label">简介：</span>{coach.description || coach.intro || '暂无简介'}</div>
               <div className="mobile-coach-field"><span className="mobile-coach-label">用户名：</span>{coach.username}</div>
