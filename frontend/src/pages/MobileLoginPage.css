@@ -1,0 +1,34 @@
+/* MobileLoginPage.css */
+.mobile-login-root {
+  min-height: 100vh;
+  background: #f7f8fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-login-card {
+  width: 95vw;
+  max-width: 400px;
+  margin: 0 auto;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px #eee;
+  padding: 32px 16px 24px 16px;
+}
+.mobile-login-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 32px;
+  color: #333;
+}
+.mobile-login-input {
+  font-size: 18px;
+  height: 44px;
+  border-radius: 8px;
+}
+.mobile-login-btn {
+  font-size: 18px;
+  height: 48px;
+  border-radius: 8px;
+  margin-top: 8px;
+} 

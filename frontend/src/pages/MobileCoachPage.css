@@ -1,0 +1,31 @@
+/* MobileCoachPage.css */
+.mobile-coach-root {
+  padding: 12px;
+  background: #f7f8fa;
+  min-height: 100vh;
+}
+.mobile-coach-add-btn {
+  font-size: 18px;
+  height: 48px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.mobile-coach-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #eee;
+  margin-bottom: 16px;
+  font-size: 16px;
+  padding: 16px;
+  position: relative;
+}
+.mobile-coach-edit-btn {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  font-size: 15px;
+}
+.mobile-coach-input {
+  font-size: 16px;
+  height: 44px;
+  border-radius: 8px;
+} 

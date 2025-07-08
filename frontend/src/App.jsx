@@ -9,6 +9,8 @@ import {
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import CoachPage from './pages/CoachPage';
 import BookingPage from './pages/BookingPage';
+import MobileLoginPage from './pages/MobileLoginPage';
+import MobileCoachPage from './pages/MobileCoachPage';
 import MobileBookingPage from './pages/MobileBookingPage';
 import LoginPage from './pages/LoginPage';
 import { getRole, logout } from './utils/auth';
@@ -113,8 +115,8 @@ export default function App() {
         )}
         <Content style={{ margin: 24, background: '#fff', minHeight: 360 }}>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/coach" element={role === 'admin' ? <CoachPage /> : <Navigate to="/booking" />} />
+            <Route path="/login" element={isMobile ? <MobileLoginPage /> : <LoginPage />} />
+            <Route path="/coach" element={role === 'admin' ? (isMobile ? <MobileCoachPage /> : <CoachPage />) : <Navigate to="/booking" />} />
             <Route path="/booking" element={isMobile ? <MobileBookingPage /> : <BookingPage />} />
             <Route path="/" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
             <Route path="*" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
