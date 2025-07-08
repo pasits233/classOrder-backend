@@ -47,9 +47,15 @@ export default function MobileBookingPage() {
   const fetchBookings = async (coachId, date) => {
     setLoading(true);
     try {
-      const res = await request.get('/api/bookings', {
-        params: { coach_id: coachId, date: date ? date.format('YYYY-MM-DD') : undefined },
-      });
+      const params = {};
+      if (role === 'admin') {
+        if (coachId) params.coach_id = coachId;
+        if (date) params.date = date.format('YYYY-MM-DD');
+      } else {
+        params.coach_id = coachId;
+        if (date) params.date = date.format('YYYY-MM-DD');
+      }
+      const res = await request.get('/api/bookings', { params });
       setBookings(res.data || []);
     } catch (e) {
       message.error('获取预约列表失败');
@@ -84,11 +90,14 @@ export default function MobileBookingPage() {
     fetchCoaches();
   }, []);
 
+  // 管理员进入时默认显示全部预约，筛选器变动自动刷新
   useEffect(() => {
-    if (selectedCoach && selectedDate) {
+    if (role === 'admin') {
+      fetchBookings(selectedCoach, selectedDate);
+    } else if (selectedCoach) {
       fetchBookings(selectedCoach, selectedDate);
     }
-  }, [selectedCoach, selectedDate]);
+  }, [role, selectedCoach, selectedDate]);
 
   // 新增/编辑预约
   const handleAdd = () => {
@@ -160,29 +169,38 @@ export default function MobileBookingPage() {
     setSelectedSlots([]);
   };
 
+  // 顶部筛选器
+  const filterBar = (
+    <div className="mobile-booking-header">
+      <DatePicker
+        value={selectedDate}
+        onChange={handleDateChange}
+        className="mobile-booking-date"
+        allowClear
+        style={{ width: role === 'admin' ? '48%' : '100%' }}
+        placeholder="选择日期"
+      />
+      {role === 'admin' && (
+        <Select
+          value={selectedCoach}
+          onChange={handleCoachChange}
+          className="mobile-booking-coach"
+          style={{ width: '48%' }}
+          allowClear
+          placeholder="全部教练"
+        >
+          <Select.Option value={null}>全部教练</Select.Option>
+          {coaches.map(coach => (
+            <Select.Option key={coach.id} value={coach.id}>{coach.name}</Select.Option>
+          ))}
+        </Select>
+      )}
+    </div>
+  );
+
   return (
     <div className="mobile-booking-root">
-      <div className="mobile-booking-header">
-        <DatePicker
-          value={selectedDate}
-          onChange={handleDateChange}
-          className="mobile-booking-date"
-          allowClear={false}
-          style={{ width: '48%' }}
-        />
-        {role === 'admin' && (
-          <Select
-            value={selectedCoach}
-            onChange={handleCoachChange}
-            className="mobile-booking-coach"
-            style={{ width: '48%' }}
-          >
-            {coaches.map(coach => (
-              <Select.Option key={coach.id} value={coach.id}>{coach.name}</Select.Option>
-            ))}
-          </Select>
-        )}
-      </div>
+      {filterBar}
       <div className="mobile-booking-list">
         {loading ? <Spin /> : (
           bookings.length === 0 ? (
