@@ -99,6 +99,13 @@ export default function MobileBookingPage() {
     }
   }, [role, selectedCoach, selectedDate]);
 
+  // useEffect: 管理员首次进入selectedCoach为null
+  useEffect(() => {
+    if (role === 'admin' && selectedCoach === null) {
+      fetchBookings(null, selectedDate);
+    }
+  }, [role, selectedCoach, selectedDate]);
+
   // 新增/编辑预约
   const handleAdd = () => {
     setEditing(null);
@@ -183,7 +190,7 @@ export default function MobileBookingPage() {
       {role === 'admin' && (
         <Select
           value={selectedCoach}
-          onChange={handleCoachChange}
+          onChange={value => setSelectedCoach(value)}
           className="mobile-booking-coach"
           style={{ width: '48%' }}
           allowClear
