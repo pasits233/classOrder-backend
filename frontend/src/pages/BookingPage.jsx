@@ -12,6 +12,7 @@ for (let hour = 9; hour < 18; hour++) {
 }
 
 export default function BookingPage() {
+  // useState 声明全部提前
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [coaches, setCoaches] = useState([]);
@@ -19,6 +20,9 @@ export default function BookingPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form] = Form.useForm();
+  const [selectedSlots, setSelectedSlots] = useState([]);
+  const [unavailableSlots, setUnavailableSlots] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
   const role = getRole();
   const userId = getUserId();
 
@@ -107,11 +111,6 @@ export default function BookingPage() {
       )}
     </div>
   );
-
-  // 新增/编辑预约弹窗的时间段多选
-  const [selectedSlots, setSelectedSlots] = useState([]);
-  const [unavailableSlots, setUnavailableSlots] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
 
   // 查询某教练某天已预约的所有时间段
   const fetchUnavailableSlots = async (coachId, date, editingId) => {
