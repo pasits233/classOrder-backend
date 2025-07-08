@@ -9,6 +9,7 @@ import {
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import CoachPage from './pages/CoachPage';
 import BookingPage from './pages/BookingPage';
+import MobileBookingPage from './pages/MobileBookingPage';
 import LoginPage from './pages/LoginPage';
 import { getRole, logout } from './utils/auth';
 
@@ -34,6 +35,16 @@ const menuItems = [
     roles: ['admin', 'coach'],
   },
 ];
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 600);
+  React.useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 600);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return isMobile;
+}
 
 export default function App() {
   const navigate = useNavigate();
@@ -76,6 +87,8 @@ export default function App() {
 
   const filteredMenu = menuItems.filter(item => item.roles.includes(role));
 
+  const isMobile = useIsMobile();
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {role && (
@@ -102,7 +115,7 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/coach" element={role === 'admin' ? <CoachPage /> : <Navigate to="/booking" />} />
-            <Route path="/booking" element={<BookingPage />} />
+            <Route path="/booking" element={isMobile ? <MobileBookingPage /> : <BookingPage />} />
             <Route path="/" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
             <Route path="*" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />
           </Routes>
