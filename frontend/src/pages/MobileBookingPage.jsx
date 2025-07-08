@@ -233,22 +233,22 @@ export default function MobileBookingPage() {
               renderItem={item => (
                 <div className="mobile-booking-card">
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, width: '100%', gap: 0 }}>
-                    <div style={{ flex: 1, textAlign: 'left' }}>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
                       <Button
-                        type="link"
-                        className="mobile-booking-edit-btn"
-                        style={{ width: '100%', padding: 0, fontWeight: 600, color: '#1677ff' }}
+                        type="text"
+                        block
+                        style={{ color: '#1677ff', fontWeight: 600, fontSize: 16 }}
                         onClick={() => handleEdit(item)}
                       >
                         编辑
                       </Button>
                     </div>
-                    <div style={{ flex: 1, textAlign: 'right' }}>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
                       <Button
-                        type="link"
+                        type="text"
                         danger
-                        className="mobile-booking-delete-btn"
-                        style={{ width: '100%', padding: 0, fontWeight: 600 }}
+                        block
+                        style={{ fontWeight: 600, fontSize: 16 }}
                         onClick={() => handleDelete(item)}
                       >
                         删除
