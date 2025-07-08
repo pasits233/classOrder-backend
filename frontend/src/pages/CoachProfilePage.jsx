@@ -11,6 +11,9 @@ export default function CoachProfilePage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -55,15 +58,29 @@ export default function CoachProfilePage() {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
+      if (newPassword || confirmNewPassword) {
+        if (!oldPassword) {
+          message.error('请输入原密码');
+          return;
+        }
+        if (newPassword !== confirmNewPassword) {
+          message.error('两次输入的新密码不一致');
+          return;
+        }
+      }
       setSaving(true);
       await request.put('/api/coach/profile', {
         name: values.name,
         description: values.description,
         avatar_url: avatarUrl,
-        password: values.password || undefined,
+        old_password: oldPassword || undefined,
+        password: newPassword || undefined,
       });
       message.success('保存成功');
       fetchProfile();
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
       form.setFieldValue('password', '');
     } catch {
       message.error('保存失败');
@@ -94,8 +111,14 @@ export default function CoachProfilePage() {
         <Form.Item label="简介" name="description">
           <Input.TextArea rows={3} placeholder="请输入简介" />
         </Form.Item>
-        <Form.Item label="新密码" name="password">
-          <Input.Password placeholder="如不修改可留空" autoComplete="new-password" />
+        <Form.Item label="原密码">
+          <Input.Password value={oldPassword} onChange={e => setOldPassword(e.target.value)} autoComplete="current-password" />
+        </Form.Item>
+        <Form.Item label="新密码">
+          <Input.Password value={newPassword} onChange={e => setNewPassword(e.target.value)} autoComplete="new-password" />
+        </Form.Item>
+        <Form.Item label="确认新密码">
+          <Input.Password value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} autoComplete="new-password" />
         </Form.Item>
         <Form.Item>
           <Button type="primary" block onClick={handleSave} loading={saving}>保存</Button>

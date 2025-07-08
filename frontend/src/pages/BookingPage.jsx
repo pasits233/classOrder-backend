@@ -140,13 +140,22 @@ export default function BookingPage() {
     form.resetFields();
     setSelectedSlots([]);
     setModalOpen(true);
-    // 只有选定日期和教练后才拉取不可用时间段
-    const coachId = role === 'admin' ? selectedCoach : (coaches.find(c => String(c.user_id) === String(userId))?.id);
-    const date = form.getFieldValue('date');
-    if (coachId && date) {
-      fetchUnavailableSlots(coachId, date.format('YYYY-MM-DD'));
+    if (role === 'coach') {
+      const myCoach = coaches.find(c => String(c.user_id) === String(userId));
+      const date = form.getFieldValue('date');
+      if (myCoach && date) {
+        fetchUnavailableSlots(myCoach.id, date.format('YYYY-MM-DD'));
+      } else {
+        setUnavailableSlots([]);
+      }
     } else {
-      setUnavailableSlots([]);
+      const coachId = selectedCoach;
+      const date = form.getFieldValue('date');
+      if (coachId && date) {
+        fetchUnavailableSlots(coachId, date.format('YYYY-MM-DD'));
+      } else {
+        setUnavailableSlots([]);
+      }
     }
   };
 
@@ -166,12 +175,22 @@ export default function BookingPage() {
 
   // 日期或教练变更时，重新拉取不可用时间段
   const handleDateOrCoachChange = (dateVal) => {
-    const coachId = role === 'admin' ? form.getFieldValue('coach_id') || selectedCoach : (coaches.find(c => String(c.user_id) === String(userId))?.id);
-    const date = dateVal ? dateVal.format('YYYY-MM-DD') : form.getFieldValue('date')?.format('YYYY-MM-DD');
-    if (coachId && date) {
-      fetchUnavailableSlots(coachId, date);
+    if (role === 'coach') {
+      const myCoach = coaches.find(c => String(c.user_id) === String(userId));
+      const date = dateVal ? dateVal.format('YYYY-MM-DD') : form.getFieldValue('date')?.format('YYYY-MM-DD');
+      if (myCoach && date) {
+        fetchUnavailableSlots(myCoach.id, date);
+      } else {
+        setUnavailableSlots([]);
+      }
     } else {
-      setUnavailableSlots([]);
+      const coachId = form.getFieldValue('coach_id') || selectedCoach;
+      const date = dateVal ? dateVal.format('YYYY-MM-DD') : form.getFieldValue('date')?.format('YYYY-MM-DD');
+      if (coachId && date) {
+        fetchUnavailableSlots(coachId, date);
+      } else {
+        setUnavailableSlots([]);
+      }
     }
     setSelectedSlots([]);
   };
@@ -270,27 +289,50 @@ export default function BookingPage() {
           </Form.Item>
           <Form.Item label="时间段" required>
             {(() => {
-              const coachId = role === 'admin' ? form.getFieldValue('coach_id') || selectedCoach : (coaches.find(c => String(c.user_id) === String(userId))?.id);
-              const date = form.getFieldValue('date');
-              if (!coachId || !date) {
-                return <div style={{ color: 'red' }}>请先选择教练和日期</div>;
+              if (role === 'coach') {
+                const date = form.getFieldValue('date');
+                if (!date) {
+                  return <div style={{ color: 'red' }}>请先选择日期</div>;
+                }
+                return (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {TIME_SLOTS.map(slot => (
+                      <Button
+                        key={slot}
+                        type={selectedSlots.includes(slot) ? 'primary' : 'default'}
+                        onClick={() => unavailableSlots.includes(slot) ? null : handleSlotClick(slot)}
+                        style={{ marginBottom: 8 }}
+                        disabled={unavailableSlots.includes(slot)}
+                        className="booking-slot-btn"
+                      >
+                        {slot}
+                      </Button>
+                    ))}
+                  </div>
+                );
+              } else {
+                const coachId = form.getFieldValue('coach_id') || selectedCoach;
+                const date = form.getFieldValue('date');
+                if (!coachId || !date) {
+                  return <div style={{ color: 'red' }}>请先选择教练和日期</div>;
+                }
+                return (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {TIME_SLOTS.map(slot => (
+                      <Button
+                        key={slot}
+                        type={selectedSlots.includes(slot) ? 'primary' : 'default'}
+                        onClick={() => unavailableSlots.includes(slot) ? null : handleSlotClick(slot)}
+                        style={{ marginBottom: 8 }}
+                        disabled={unavailableSlots.includes(slot)}
+                        className="booking-slot-btn"
+                      >
+                        {slot}
+                      </Button>
+                    ))}
+                  </div>
+                );
               }
-              return (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {TIME_SLOTS.map(slot => (
-                    <Button
-                      key={slot}
-                      type={selectedSlots.includes(slot) ? 'primary' : 'default'}
-                      onClick={() => unavailableSlots.includes(slot) ? null : handleSlotClick(slot)}
-                      style={{ marginBottom: 8 }}
-                      disabled={unavailableSlots.includes(slot)}
-                      className="booking-slot-btn"
-                    >
-                      {slot}
-                    </Button>
-                  ))}
-                </div>
-              );
             })()}
             {selectedSlots.length === 0 && <div style={{ color: 'red', marginTop: 4 }}>请选择至少一个时间段</div>}
           </Form.Item>

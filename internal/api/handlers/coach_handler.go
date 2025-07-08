@@ -279,10 +279,31 @@ func UpdateOwnCoachProfileHandler(c *gin.Context) {
 		return
 	}
 
-	// 如果有新密码，更新 user 表
+	// 如果有新密码，校验原密码
 	if req.Password != "" {
+		oldPassword := c.PostForm("old_password")
+		if oldPassword == "" {
+			oldPassword = c.Query("old_password")
+		}
+		if oldPassword == "" {
+			// 尝试从 JSON 体中获取
+			var body map[string]interface{}
+			if err := c.ShouldBindJSON(&body); err == nil {
+				if v, ok := body["old_password"].(string); ok {
+					oldPassword = v
+				}
+			}
+		}
 		var user models.User
 		if err := database.DB.First(&user, coach.UserID).Error; err == nil {
+			if oldPassword == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "原密码不能为空"})
+				return
+			}
+			if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword)) != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "原密码错误"})
+				return
+			}
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 			user.PasswordHash = string(hashedPassword)
 			database.DB.Save(&user)
