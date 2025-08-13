@@ -69,7 +69,7 @@ export default function CoachPage() {
         message.success('修改成功');
       } else {
         await request.post('/api/coaches', data);
-        message.success('添加成功');
+        message.success('添加成功，默认密码为: coach123');
       }
       setModalOpen(false);
       fetchCoaches();
@@ -104,12 +104,22 @@ export default function CoachPage() {
     { title: '操作', dataIndex: 'action', render: (_, record) => (
       <>
         <Button type="link" onClick={() => handleEdit(record)}>编辑</Button>
+        <Button type="link" onClick={() => handleResetPassword(record.id)}>重置密码</Button>
         <Popconfirm title="确定删除吗？" onConfirm={() => handleDelete(record.id)}>
           <Button type="link" danger>删除</Button>
         </Popconfirm>
       </>
     ) },
   ];
+
+  const handleResetPassword = async (coachId) => {
+    try {
+      await request.post(`/api/coaches/${coachId}/reset-password`);
+      message.success('密码重置成功，新密码为: coach123');
+    } catch (e) {
+      message.error('密码重置失败');
+    }
+  };
 
   return (
     <div>
@@ -127,9 +137,6 @@ export default function CoachPage() {
         <Form form={form} layout="vertical">
           <Form.Item name="username" label="账号" rules={[{ required: true, message: '请输入账号' }]}> 
             <Input />
-          </Form.Item>
-          <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}> 
-            <Input.Password />
           </Form.Item>
           <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}> 
             <Input />

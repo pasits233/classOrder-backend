@@ -72041,7 +72041,7 @@ function CoachPage() {
         staticMethods.success("修改成功");
       } else {
         await request.post("/api/coaches", data);
-        staticMethods.success("添加成功");
+        staticMethods.success("添加成功，默认密码为: coach123");
       }
       setModalOpen(false);
       fetchCoaches();
@@ -72073,9 +72073,18 @@ function CoachPage() {
     { title: "简介", dataIndex: "description" },
     { title: "操作", dataIndex: "action", render: (_, record) => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Button$1, { type: "link", onClick: () => handleEdit(record), children: "编辑" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Button$1, { type: "link", onClick: () => handleResetPassword(record.id), children: "重置密码" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Popconfirm, { title: "确定删除吗？", onConfirm: () => handleDelete(record.id), children: /* @__PURE__ */ jsxRuntimeExports.jsx(Button$1, { type: "link", danger: true, children: "删除" }) })
     ] }) }
   ];
+  const handleResetPassword = async (coachId) => {
+    try {
+      await request.post(`/api/coaches/${coachId}/reset-password`);
+      staticMethods.success("密码重置成功，新密码为: coach123");
+    } catch (e2) {
+      staticMethods.error("密码重置失败");
+    }
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Button$1, { type: "primary", icon: /* @__PURE__ */ jsxRuntimeExports.jsx(RefIcon$w, {}), style: { marginBottom: 16 }, onClick: handleAdd, children: "新增教练" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(ForwardTable, { rowKey: "id", columns, dataSource: coaches, loading }),
@@ -72089,7 +72098,6 @@ function CoachPage() {
         confirmLoading: uploading,
         children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Form2, { form, layout: "vertical", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "username", label: "账号", rules: [{ required: true, message: "请输入账号" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input, {}) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "password", label: "密码", rules: [{ required: true, message: "请输入密码" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input.Password, {}) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "name", label: "姓名", rules: [{ required: true, message: "请输入姓名" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input, {}) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "intro", label: "简介", rules: [{ required: true, message: "请输入简介" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input, {}) }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs(Form2.Item, { label: "头像", children: [
@@ -72502,12 +72510,20 @@ function MobileCoachPage() {
         staticMethods.success("修改成功");
       } else {
         await request.post("/api/coaches", data);
-        staticMethods.success("添加成功");
+        staticMethods.success("添加成功，默认密码为: coach123");
       }
       setModalOpen(false);
       fetchCoaches();
     } catch {
       staticMethods.error("保存失败");
+    }
+  };
+  const handleResetPassword = async (coachId) => {
+    try {
+      await request.post(`/api/coaches/${coachId}/reset-password`);
+      staticMethods.success("密码重置成功，新密码为: coach123");
+    } catch (e2) {
+      staticMethods.error("密码重置失败");
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mobile-coach-root", children: [
@@ -72536,6 +72552,16 @@ function MobileCoachPage() {
                 style: { color: "#1677ff", fontWeight: 600, fontSize: 16 },
                 onClick: () => handleEdit(coach),
                 children: "编辑"
+              }
+            ) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { flex: 1, textAlign: "center" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Button$1,
+              {
+                type: "text",
+                block: true,
+                style: { color: "#52c41a", fontWeight: 600, fontSize: 16 },
+                onClick: () => handleResetPassword(coach.id),
+                children: "重置密码"
               }
             ) }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { flex: 1, textAlign: "center" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Popconfirm, { title: "确定删除该教练吗？", onConfirm: async () => {
@@ -72585,8 +72611,7 @@ function MobileCoachPage() {
         children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Form2, { form, layout: "vertical", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "name", label: "姓名", rules: [{ required: true, message: "请输入姓名" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input, { className: "mobile-coach-input" }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "intro", label: "简介", rules: [{ required: true, message: "请输入简介" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input, { className: "mobile-coach-input" }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "username", label: "用户名", rules: [{ required: true, message: "请输入用户名" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input, { className: "mobile-coach-input" }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "password", label: "密码", rules: [{ required: !editing, message: "请输入密码" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input.Password, { className: "mobile-coach-input", placeholder: editing ? "如不修改可留空" : "" }) })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Form2.Item, { name: "username", label: "用户名", rules: [{ required: true, message: "请输入用户名" }], children: /* @__PURE__ */ jsxRuntimeExports.jsx(Input, { className: "mobile-coach-input" }) })
         ] })
       }
     )
@@ -73317,4 +73342,4 @@ const root = client.createRoot(document.getElementById("root"));
 root.render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorBoundary, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) }) }) })
 );
-//# sourceMappingURL=index-BhO_q41n.js.map
+//# sourceMappingURL=index-CIRV6Dam.js.map
