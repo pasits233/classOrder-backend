@@ -13,7 +13,6 @@ import (
 // CreateCoachRequest 定义了创建教练的请求结构
 type CreateCoachRequest struct {
 	Username    string `json:"username" binding:"required"`
-	Password    string `json:"password" binding:"required"`
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
 	AvatarURL   string `json:"avatar_url"`
@@ -27,8 +26,9 @@ func CreateCoachHandler(c *gin.Context) {
 		return
 	}
 
-	// 哈希密码
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	// 使用默认密码 coach123
+	defaultPassword := "coach123"
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
@@ -66,7 +66,7 @@ func CreateCoachHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Coach created successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Coach created successfully with default password: " + defaultPassword})
 }
 
 // ListCoachesHandler 获取所有教练的列表
@@ -130,13 +130,11 @@ func GetCoachHandler(c *gin.Context) {
 }
 
 // UpdateCoachRequest 定义了更新教练的请求结构
-// 新增 Password 字段
+// 移除密码相关字段，密码通过单独的重置接口处理
 type UpdateCoachRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	AvatarURL   string `json:"avatar_url"`
-	Password    string `json:"password"`
-	OldPassword string `json:"old_password"`
 }
 
 // UpdateCoachHandler 更新教练信息
@@ -164,17 +162,34 @@ func UpdateCoachHandler(c *gin.Context) {
 		return
 	}
 
-	// 如果有新密码，使用 username 查找 user 并更新密码
-	if req.Password != "" {
-		var user models.User
-		if err := database.DB.Where("username = ?", coach.User.Username).First(&user).Error; err == nil {
-			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-			user.PasswordHash = string(hashedPassword)
-			database.DB.Save(&user)
-		}
+	c.JSON(http.StatusOK, gin.H{"message": "Coach updated successfully"})
+}
+
+// ResetCoachPasswordHandler 重置教练密码为默认密码
+func ResetCoachPasswordHandler(c *gin.Context) {
+	id := c.Param("id")
+	var coach models.Coach
+	// 预加载 User
+	if err := database.DB.Preload("User").First(&coach, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Coach not found"})
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Coach updated successfully"})
+	// 重置密码为 coach123
+	defaultPassword := "coach123"
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
+	// 更新用户密码
+	if err := database.DB.Model(&models.User{}).Where("id = ?", coach.UserID).Update("password_hash", string(hashedPassword)).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reset password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully to: " + defaultPassword})
 }
 
 // DeleteCoachHandler 删除一个教练及其关联的用户

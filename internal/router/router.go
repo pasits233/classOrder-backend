@@ -38,6 +38,7 @@ func SetupRouter() *gin.Engine {
 				adminCoaches.POST("", handlers.CreateCoachHandler)
 				adminCoaches.PUT("/:id", handlers.UpdateCoachHandler)
 				adminCoaches.DELETE("/:id", handlers.DeleteCoachHandler)
+				adminCoaches.POST("/:id/reset-password", handlers.ResetCoachPasswordHandler) // 重置密码
 			}
 		}
 
