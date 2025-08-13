@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 创建 axios 实例
 const request = axios.create({
-  baseURL: import.meta.env.PROD ? 'http://49.232.172.49:9528' : '/',
+  baseURL: '/',
   timeout: 5000,
 });
 

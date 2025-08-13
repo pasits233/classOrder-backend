@@ -71952,6 +71952,35 @@ const {
   getAdapter,
   mergeConfig
 } = axios;
+const request = axios.create({
+  baseURL: "/",
+  timeout: 5e3
+});
+request.interceptors.request.use(
+  (config) => {
+    const token2 = localStorage.getItem("token");
+    if (token2) {
+      config.headers.Authorization = `Bearer ${token2}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+request.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 function CoachPage() {
   const [coaches, setCoaches] = reactExports.useState([]);
   const [loading, setLoading] = reactExports.useState(false);
@@ -71963,9 +71992,7 @@ function CoachPage() {
   const fetchCoaches = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("/api/coaches", {
-        headers: { Authorization: "Bearer " + localStorage.getItem("token") }
-      });
+      const res = await request.get("/api/coaches");
       setCoaches(res.data || []);
     } catch (e2) {
       staticMethods.error("获取教练列表失败");
@@ -71993,9 +72020,7 @@ function CoachPage() {
   };
   const handleDelete = async (id2) => {
     try {
-      await axios.delete(`/api/coaches/${id2}`, {
-        headers: { Authorization: "Bearer " + localStorage.getItem("token") }
-      });
+      await request.delete(`/api/coaches/${id2}`);
       staticMethods.success("删除成功");
       fetchCoaches();
     } catch (e2) {
@@ -72012,14 +72037,10 @@ function CoachPage() {
       };
       delete data.intro;
       if (editing) {
-        await axios.put(`/api/coaches/${editing.id}`, data, {
-          headers: { Authorization: "Bearer " + localStorage.getItem("token") }
-        });
+        await request.put(`/api/coaches/${editing.id}`, data);
         staticMethods.success("修改成功");
       } else {
-        await axios.post("/api/coaches", data, {
-          headers: { Authorization: "Bearer " + localStorage.getItem("token") }
-        });
+        await request.post("/api/coaches", data);
         staticMethods.success("添加成功");
       }
       setModalOpen(false);
@@ -72033,10 +72054,9 @@ function CoachPage() {
     const formData = new FormData();
     formData.append("file", info.file);
     try {
-      const res = await axios.post("/api/upload", formData, {
+      const res = await request.post("/api/upload", formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: "Bearer " + localStorage.getItem("token")
+          "Content-Type": "multipart/form-data"
         }
       });
       setAvatarUrl(res.data.url || res.data.file_url);
@@ -72089,35 +72109,6 @@ function CoachPage() {
     )
   ] });
 }
-const request = axios.create({
-  baseURL: "http://49.232.172.49:9528",
-  timeout: 5e3
-});
-request.interceptors.request.use(
-  (config) => {
-    const token2 = localStorage.getItem("token");
-    if (token2) {
-      config.headers.Authorization = `Bearer ${token2}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-request.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
 function getRole() {
   return localStorage.getItem("role");
 }
@@ -73326,4 +73317,4 @@ const root = client.createRoot(document.getElementById("root"));
 root.render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorBoundary, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) }) }) })
 );
-//# sourceMappingURL=index-CZUSHiLT.js.map
+//# sourceMappingURL=index-BhO_q41n.js.map

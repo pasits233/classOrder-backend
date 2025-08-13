@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Input, Upload, message, Popconfirm, Image } from 'antd';
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import request from '../utils/request';
 
 export default function CoachPage() {
   const [coaches, setCoaches] = useState([]);
@@ -15,9 +15,7 @@ export default function CoachPage() {
   const fetchCoaches = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/coaches', {
-        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
-      });
+      const res = await request.get('/api/coaches');
       setCoaches(res.data || []);
     } catch (e) {
       message.error('获取教练列表失败');
@@ -49,9 +47,7 @@ export default function CoachPage() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/coaches/${id}`, {
-        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
-      });
+      await request.delete(`/api/coaches/${id}`);
       message.success('删除成功');
       fetchCoaches();
     } catch (e) {
@@ -69,14 +65,10 @@ export default function CoachPage() {
       };
       delete data.intro;
       if (editing) {
-        await axios.put(`/api/coaches/${editing.id}`, data, {
-          headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
-        });
+        await request.put(`/api/coaches/${editing.id}`, data);
         message.success('修改成功');
       } else {
-        await axios.post('/api/coaches', data, {
-          headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
-        });
+        await request.post('/api/coaches', data);
         message.success('添加成功');
       }
       setModalOpen(false);
@@ -91,10 +83,9 @@ export default function CoachPage() {
     const formData = new FormData();
     formData.append('file', info.file);
     try {
-      const res = await axios.post('/api/upload', formData, {
+      const res = await request.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: 'Bearer ' + localStorage.getItem('token'),
         },
       });
       setAvatarUrl(res.data.url || res.data.file_url);
