@@ -54,6 +54,7 @@ func SetupRouter() *gin.Engine {
 		// 教练自助管理个人信息（仅需登录）
 		api.GET("/coach/profile", middleware.JWTAuthMiddleware(), handlers.GetOwnCoachProfileHandler)
 		api.PUT("/coach/profile", middleware.JWTAuthMiddleware(), handlers.UpdateOwnCoachProfileHandler)
+		api.POST("/coach/reset-password", middleware.JWTAuthMiddleware(), handlers.ResetOwnCoachPasswordHandler) // 教练重置自己的密码
 	}
 
 	return r

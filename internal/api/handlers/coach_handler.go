@@ -256,6 +256,13 @@ func GetOwnCoachProfileHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// UpdateOwnCoachProfileRequest 教练自助修改个人信息的请求结构
+type UpdateOwnCoachProfileRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	AvatarURL   string `json:"avatar_url"`
+}
+
 // 新增：教练自助修改个人信息
 func UpdateOwnCoachProfileHandler(c *gin.Context) {
 	userIDVal, exists := c.Get("user_id")
@@ -275,13 +282,11 @@ func UpdateOwnCoachProfileHandler(c *gin.Context) {
 		return
 	}
 
-	var req UpdateCoachRequest
-	var body map[string]interface{}
+	var req UpdateOwnCoachProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
-	_ = c.ShouldBindJSON(&body)
 
 	if req.Name != "" {
 		coach.Name = req.Name
@@ -297,23 +302,57 @@ func UpdateOwnCoachProfileHandler(c *gin.Context) {
 		return
 	}
 
-	// 如果有新密码，校验原密码
-	if req.Password != "" {
-		if req.OldPassword == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "原密码不能为空"})
-			return
-		}
-		var user models.User
-		if err := database.DB.First(&user, coach.UserID).Error; err == nil {
-			if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)) != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "原密码错误"})
-				return
-			}
-			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-			user.PasswordHash = string(hashedPassword)
-			database.DB.Save(&user)
-		}
+	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
+}
+
+// ResetOwnCoachPasswordRequest 教练重置自己密码的请求结构
+type ResetOwnCoachPasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}
+
+// ResetOwnCoachPasswordHandler 教练重置自己的密码
+func ResetOwnCoachPasswordHandler(c *gin.Context) {
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+	userID, ok := userIDVal.(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID type"})
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
+	var req ResetOwnCoachPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// 验证原密码
+	var user models.User
+	if err := database.DB.First(&user, uint(userID)).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+		return
+	}
+
+	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "原密码错误"})
+		return
+	}
+
+	// 更新密码
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
+	if err := database.DB.Model(&user).Update("password_hash", string(hashedPassword)).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
