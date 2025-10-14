@@ -72354,7 +72354,9 @@ function BookingPage() {
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("b", { children: "学员：" }),
-              item.student_name
+              item.student_name,
+              " ",
+              item.student_id ? `(ID: ${item.student_id})` : ""
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("b", { children: "教练：" }),
@@ -72860,7 +72862,8 @@ function MobileBookingPage() {
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mobile-booking-field", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "mobile-booking-label", children: "学员：" }),
-              item.student_name
+              item.student_name,
+              item.student_id ? ` (ID: ${item.student_id})` : ""
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mobile-booking-field", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "mobile-booking-label", children: "时间段：" }),
@@ -73342,4 +73345,4 @@ const root = client.createRoot(document.getElementById("root"));
 root.render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorBoundary, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) }) }) })
 );
-//# sourceMappingURL=index-CIRV6Dam.js.map
+//# sourceMappingURL=index-Cgn_sx6V.js.map

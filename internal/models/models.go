@@ -30,6 +30,7 @@ type Coach struct {
 type Booking struct {
 	ID          uint      `gorm:"primaryKey"`
 	CoachID     uint      `gorm:"not null"`
+	StudentID   uint      `gorm:"index;comment:学员ID（微信用户ID）"`
 	BookingDate time.Time `gorm:"type:date;not null"`
 	TimeSlot    string    `gorm:"type:varchar(50);not null"`
 	ClientInfo  string    `gorm:"type:varchar(255)"`

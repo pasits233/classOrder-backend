@@ -252,7 +252,7 @@ export default function BookingPage() {
                     <b>时间段：</b><Tag color="blue">{item.time_slots}</Tag>
                   </div>
                   <div>
-                    <b>学员：</b>{item.student_name}
+                    <b>学员：</b>{item.student_name} {item.student_id ? `(ID: ${item.student_id})` : ''}
                   </div>
                   <div>
                     <b>教练：</b>{coaches.find(c => c.id === item.coach_id)?.name || '-'}

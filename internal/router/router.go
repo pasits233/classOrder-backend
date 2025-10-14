@@ -18,6 +18,18 @@ func SetupRouter() *gin.Engine {
 
 	// 公开的登录路由
 	r.POST("/api/login", handlers.LoginHandler)
+	
+	// 微信登录相关路由
+	wechatHandler := handlers.NewWeChatHandler()
+	r.POST("/api/wechat/login", wechatHandler.LoginHandler)
+	r.POST("/api/wechat/bind-user", middleware.JWTAuthMiddleware(), wechatHandler.BindUserHandler)
+	r.GET("/api/wechat/user-info", middleware.JWTAuthMiddleware(), wechatHandler.GetUserInfoHandler)
+
+	// 微信预约相关路由
+	wechatBookingHandler := handlers.WeChatCreateBookingHandler
+	r.POST("/api/wechat/bookings", middleware.JWTAuthMiddleware(), wechatBookingHandler)
+	r.GET("/api/wechat/bookings", middleware.JWTAuthMiddleware(), handlers.WeChatListBookingsHandler)
+	r.DELETE("/api/wechat/bookings/:id", middleware.JWTAuthMiddleware(), handlers.WeChatDeleteBookingHandler)
 
 	// API路由组
 	api := r.Group("/api")

@@ -188,6 +188,7 @@ func ListBookingsHandler(c *gin.Context) {
 			"date":         b.BookingDate.Format("2006-01-02"),
 			"time_slots":   b.TimeSlot,
 			"student_name": b.ClientInfo,
+			"student_id":   b.StudentID,
 		})
 	}
 	c.JSON(http.StatusOK, resp)

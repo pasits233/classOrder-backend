@@ -10,6 +10,7 @@ import (
 )
 
 // JWTAuthMiddleware 是一个验证JWT的中间件
+// 支持传统用户和微信用户
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -41,9 +42,22 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			// 将用户信息存储到context中，方便后续handler使用
-			c.Set("user_id", claims["user_id"])
-			c.Set("role", claims["role"])
+			// 检查是否为微信用户（有 open_id）
+			if openID, exists := claims["open_id"]; exists {
+				// 微信用户
+				c.Set("open_id", openID)
+				c.Set("user_id", claims["user_id"])
+				c.Set("role", claims["role"])
+			} else if userID, exists := claims["user_id"]; exists {
+				// 传统用户
+				c.Set("user_id", userID)
+				c.Set("role", claims["role"])
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+				c.Abort()
+				return
+			}
+			
 			c.Next()
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})

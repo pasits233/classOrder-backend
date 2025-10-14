@@ -291,7 +291,7 @@ export default function MobileBookingPage() {
                     </div>
                   </div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">日期：</span>{item.date}</div>
-                  <div className="mobile-booking-field"><span className="mobile-booking-label">学员：</span>{item.student_name}</div>
+                  <div className="mobile-booking-field"><span className="mobile-booking-label">学员：</span>{item.student_name}{item.student_id ? ` (ID: ${item.student_id})` : ''}</div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">时间段：</span><Tag color="blue">{item.time_slots}</Tag></div>
                   <div className="mobile-booking-field"><span className="mobile-booking-label">教练：</span>{coaches.find(c => c.id === item.coach_id)?.name || '-'}</div>
                 </div>
