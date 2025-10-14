@@ -13,8 +13,8 @@ type WeChatConfig struct {
 // GetWeChatConfig 获取微信配置
 func GetWeChatConfig() *WeChatConfig {
 	return &WeChatConfig{
-		AppID:     getEnv("WECHAT_APP_ID", "your_app_id_here"),
-		AppSecret: getEnv("WECHAT_APP_SECRET", "your_app_secret_here"),
+		AppID:     "wxad9e66bf74484a17",
+		AppSecret: "fc79b7de2d170c8adf4746089dc245b4",
 	}
 }
 
@@ -24,4 +24,4 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
-} 
+}
