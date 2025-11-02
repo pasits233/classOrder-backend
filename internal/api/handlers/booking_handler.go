@@ -219,9 +219,13 @@ func BookingAvailabilityHandler(c *gin.Context) {
 		return
 	}
 	
+	// 添加日志
+	log.Printf("[BookingAvailability] coach_id=%s, date=%s, found %d bookings", coachID, dateStr, len(bookings))
+	
 	// 返回所有已预约的时间段（展平为数组）
 	var occupiedSlots []string
 	for _, b := range bookings {
+		log.Printf("[BookingAvailability] booking ID=%d, time_slot=%s", b.ID, b.TimeSlot)
 		slots := strings.Split(b.TimeSlot, ",")
 		for _, slot := range slots {
 			slot = strings.TrimSpace(slot)
@@ -230,6 +234,13 @@ func BookingAvailabilityHandler(c *gin.Context) {
 			}
 		}
 	}
+	
+	// 确保返回空数组而不是 nil
+	if occupiedSlots == nil {
+		occupiedSlots = []string{}
+	}
+	
+	log.Printf("[BookingAvailability] occupied_slots=%v (len=%d)", occupiedSlots, len(occupiedSlots))
 	
 	c.JSON(http.StatusOK, gin.H{
 		"coach_id": coachID,
