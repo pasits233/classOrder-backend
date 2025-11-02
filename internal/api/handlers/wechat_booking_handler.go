@@ -9,6 +9,7 @@ import (
 	"errors"
 	"log"
     "fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -69,29 +70,14 @@ func WeChatCreateBookingHandler(c *gin.Context) {
 		wechatUser.ID, req.CoachID, req.Date, req.TimeSlot)
 
 	// 并发锁+冲突检测
-	err = database.DB.Transaction(func(tx *gorm.DB) error {
+    err = database.DB.Transaction(func(tx *gorm.DB) error {
 		// 检查教练是否存在
 		var coach models.Coach
 		if err := tx.First(&coach, req.CoachID).Error; err != nil {
 			return errors.New("教练不存在")
 		}
 
-		// 检查时间段是否已被预约
-		var existing []models.Booking
-		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("coach_id = ? AND booking_date = ? AND time_slot = ?", 
-				req.CoachID, bookingDate, req.TimeSlot).
-			Find(&existing).Error
-		
-		if err != nil {
-			return err
-		}
-
-		if len(existing) > 0 {
-			return errors.New("该时间段已被预约，请选择其他时间段")
-		}
-
-    	// 创建预约记录（昵称缺失时做回退）
+        // 创建预约记录（昵称缺失时做回退）；并依赖唯一索引防止并发下重复
     	displayName := wechatUser.NickName
     	if displayName == "" {
     		displayName = fmt.Sprintf("微信用户#%d", wechatUser.ID)
@@ -104,9 +90,13 @@ func WeChatCreateBookingHandler(c *gin.Context) {
     		StudentID:   wechatUser.ID,
     	}
 
-		if err := tx.Create(&booking).Error; err != nil {
-			return err
-		}
+        if err := tx.Create(&booking).Error; err != nil {
+            // 处理并发唯一约束冲突（Duplicate entry）
+            if strings.Contains(err.Error(), "Duplicate entry") {
+                return errors.New("该时间段已被预约，请选择其他时间段")
+            }
+            return err
+        }
 
 		return nil
 	})

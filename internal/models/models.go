@@ -28,11 +28,11 @@ type Coach struct {
 
 // Booking 对应于 'bookings' 表
 type Booking struct {
-	ID          uint      `gorm:"primaryKey"`
-	CoachID     uint      `gorm:"not null"`
-	StudentID   uint      `gorm:"index;comment:学员ID（微信用户ID）"`
-	BookingDate time.Time `gorm:"type:date;not null"`
-	TimeSlot    string    `gorm:"type:varchar(50);not null"`
+    ID          uint      `gorm:"primaryKey"`
+    CoachID     uint      `gorm:"not null;index:uniq_coach_date_slot,unique"`
+    StudentID   uint      `gorm:"index;comment:学员ID（微信用户ID）"`
+    BookingDate time.Time `gorm:"type:date;not null;index:uniq_coach_date_slot,unique"`
+    TimeSlot    string    `gorm:"type:varchar(50);not null;index:uniq_coach_date_slot,unique"`
 	ClientInfo  string    `gorm:"type:varchar(255)"`
 	CreatedAt   time.Time
 } 
