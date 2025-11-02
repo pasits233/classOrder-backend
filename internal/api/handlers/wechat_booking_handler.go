@@ -8,6 +8,7 @@ import (
 	"time"
 	"errors"
 	"log"
+    "fmt"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -90,14 +91,18 @@ func WeChatCreateBookingHandler(c *gin.Context) {
 			return errors.New("该时间段已被预约，请选择其他时间段")
 		}
 
-		// 创建预约记录
-		booking := models.Booking{
-			CoachID:     req.CoachID,
-			BookingDate: bookingDate,
-			TimeSlot:    req.TimeSlot,
-			ClientInfo:  wechatUser.NickName,
-			StudentID:   wechatUser.ID,
-		}
+    	// 创建预约记录（昵称缺失时做回退）
+    	displayName := wechatUser.NickName
+    	if displayName == "" {
+    		displayName = fmt.Sprintf("微信用户#%d", wechatUser.ID)
+    	}
+    	booking := models.Booking{
+    		CoachID:     req.CoachID,
+    		BookingDate: bookingDate,
+    		TimeSlot:    req.TimeSlot,
+    		ClientInfo:  displayName,
+    		StudentID:   wechatUser.ID,
+    	}
 
 		if err := tx.Create(&booking).Error; err != nil {
 			return err
