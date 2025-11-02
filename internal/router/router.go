@@ -3,6 +3,9 @@ package router
 import (
 	"classOrder-backend/internal/api/handlers"
 	"classOrder-backend/middleware"
+	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +17,43 @@ func SetupRouter() *gin.Engine {
 
 	// 提供静态文件服务，用于访问上传的头像
 	// 例如 /uploads/avatar.png
-	r.Static("/uploads", "./uploads")
+	// 尝试多个可能的路径来找到 uploads 目录
+	var uploadsDir string
+	possiblePaths := []string{
+		"/root/williamcai/classOrder-backend/uploads", // 服务器实际路径
+		filepath.Join(os.Getenv("PWD"), "uploads"),    // 从环境变量获取
+		filepath.Join(os.Getenv("HOME"), "classOrder-backend", "uploads"),
+	}
+	
+	// 如果 Getwd() 成功，也添加该路径
+	if wd, err := os.Getwd(); err == nil {
+		possiblePaths = append(possiblePaths, filepath.Join(wd, "uploads"))
+	}
+	
+	// 尝试找到存在的 uploads 目录
+	found := false
+	for _, path := range possiblePaths {
+		if info, err := os.Stat(path); err == nil && info.IsDir() {
+			uploadsDir = path
+			found = true
+			gin.DefaultWriter.Write([]byte(fmt.Sprintf("[INFO] Using uploads directory: %s\n", uploadsDir)))
+			break
+		}
+	}
+	
+	// 如果都没找到，使用相对路径并尝试创建
+	if !found {
+		uploadsDir = "./uploads"
+		if wd, err := os.Getwd(); err == nil {
+			uploadsPath := filepath.Join(wd, "uploads")
+			if err := os.MkdirAll(uploadsPath, 0755); err == nil {
+				uploadsDir = uploadsPath
+				gin.DefaultWriter.Write([]byte(fmt.Sprintf("[INFO] Created uploads directory: %s\n", uploadsDir)))
+			}
+		}
+	}
+	
+	r.Static("/uploads", uploadsDir)
 
 	// 公开的登录路由
 	r.POST("/api/login", handlers.LoginHandler)
