@@ -192,4 +192,48 @@ func ListBookingsHandler(c *gin.Context) {
 		})
 	}
 	c.JSON(http.StatusOK, resp)
+}
+
+// BookingAvailabilityHandler 公开接口：查询某个教练在某个日期的已预约时间段（用于显示可用性）
+func BookingAvailabilityHandler(c *gin.Context) {
+	coachID := c.Query("coach_id")
+	dateStr := c.Query("date")
+	
+	if coachID == "" || dateStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "coach_id and date are required"})
+		return
+	}
+	
+	var bookings []models.Booking
+	db := database.DB.Where("coach_id = ?", coachID)
+	
+	if date, err := time.Parse("2006-01-02", dateStr); err == nil {
+		db = db.Where("DATE(booking_date) = ?", date.Format("2006-01-02"))
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format, use YYYY-MM-DD"})
+		return
+	}
+	
+	if err := db.Find(&bookings).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve bookings"})
+		return
+	}
+	
+	// 返回所有已预约的时间段（展平为数组）
+	var occupiedSlots []string
+	for _, b := range bookings {
+		slots := strings.Split(b.TimeSlot, ",")
+		for _, slot := range slots {
+			slot = strings.TrimSpace(slot)
+			if slot != "" {
+				occupiedSlots = append(occupiedSlots, slot)
+			}
+		}
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"coach_id": coachID,
+		"date":     dateStr,
+		"occupied_slots": occupiedSlots,
+	})
 } 

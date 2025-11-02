@@ -93,7 +93,10 @@ func SetupRouter() *gin.Engine {
 			}
 		}
 
-		// 预约管理路由
+		// 预约可用性查询（公开接口，不需要登录）
+		api.GET("/bookings/availability", handlers.BookingAvailabilityHandler)
+		
+		// 预约管理路由（需要登录）
 		bookings := api.Group("/bookings", middleware.JWTAuthMiddleware())
 		{
 			bookings.GET("", handlers.ListBookingsHandler)
