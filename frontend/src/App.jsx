@@ -5,10 +5,12 @@ import {
   TeamOutlined,
   CalendarOutlined,
   LogoutOutlined,
+  EnvironmentOutlined,
 } from '@ant-design/icons';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import CoachPage from './pages/CoachPage';
 import BookingPage from './pages/BookingPage';
+import VenuePage from './pages/VenuePage';
 import MobileLoginPage from './pages/MobileLoginPage';
 import MobileCoachPage from './pages/MobileCoachPage';
 import MobileBookingPage from './pages/MobileBookingPage';
@@ -25,6 +27,12 @@ const menuItems = [
     key: 'coach',
     icon: <TeamOutlined />,
     label: '教练管理',
+    roles: ['admin'],
+  },
+  {
+    key: 'venue',
+    icon: <EnvironmentOutlined />,
+    label: '场地管理',
     roles: ['admin'],
   },
   {
@@ -142,6 +150,7 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/coach" element={role === 'admin' ? <CoachPage /> : <Navigate to="/booking" />} />
+            <Route path="/venue" element={role === 'admin' ? <VenuePage /> : <Navigate to="/booking" />} />
             <Route path="/booking" element={<BookingPage />} />
             <Route path="/profile" element={<CoachProfilePage />} />
             <Route path="/" element={<Navigate to={role === 'admin' ? '/coach' : '/booking'} replace />} />

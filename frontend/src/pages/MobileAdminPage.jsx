@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import MobileCoachPage from './MobileCoachPage';
+import MobileVenuePage from './MobileVenuePage';
 import MobileBookingPage from './MobileBookingPage';
 import MobileCoachProfilePage from './MobileCoachProfilePage';
 import { Button } from 'antd';
@@ -8,6 +9,7 @@ import './MobileAdminPage.css';
 
 const TABS = [
   { key: 'coach', label: '教练管理' },
+  { key: 'venue', label: '场地管理' },
   { key: 'booking', label: '预约管理' },
   { key: 'profile', label: '个人中心' },
 ];
@@ -46,6 +48,7 @@ export default function MobileAdminPage() {
       {/* 子页面内容 */}
       <div className="mobile-admin-content">
         {tab === 'coach' && <MobileCoachPage />}
+        {tab === 'venue' && <MobileVenuePage />}
         {tab === 'booking' && <MobileBookingPage />}
         {tab === 'profile' && <MobileCoachProfilePage />}
       </div>

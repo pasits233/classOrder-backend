@@ -241,7 +241,36 @@
   color: #888;
   margin-top: 32px;
   font-size: 18px;
-} .mobile-admin-root {
+} .mobile-venue-root {
+  padding: 16px;
+}
+
+.mobile-venue-add-btn {
+  margin-bottom: 16px;
+}
+
+.mobile-venue-card {
+  margin-bottom: 16px;
+}
+
+.mobile-venue-field {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.mobile-venue-label {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.mobile-venue-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.mobile-admin-root {
   background: #f5f6fa;
   min-height: 100vh;
   padding: 0;

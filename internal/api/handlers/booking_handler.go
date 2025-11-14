@@ -3,20 +3,21 @@ package handlers
 import (
 	"classOrder-backend/internal/database"
 	"classOrder-backend/internal/models"
-	"net/http"
-	"time"
-	"strings"
-	"sort"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"log"
+	"net/http"
+	"sort"
+	"strings"
+	"time"
 )
 
 type CreateBookingRequest struct {
 	StudentName string `json:"student_name" binding:"required"`
 	CoachID     uint   `json:"coach_id" binding:"required"`
+	VenueID     uint   `json:"venue_id" binding:"required"`
 	Date        string `json:"date" binding:"required"` // YYYY-MM-DD
 	TimeSlots   string `json:"time_slots" binding:"required"`
 }
@@ -24,6 +25,7 @@ type CreateBookingRequest struct {
 type UpdateBookingRequest struct {
 	StudentName string `json:"student_name"`
 	CoachID     uint   `json:"coach_id"`
+	VenueID     *uint  `json:"venue_id"`
 	Date        string `json:"date"`
 	TimeSlots   string `json:"time_slots"`
 }
@@ -60,10 +62,18 @@ func CreateBookingHandler(c *gin.Context) {
 
 	log.Printf("[CreateBooking] coach_id=%d, date=%s, time_slots=%s", req.CoachID, bookingDate.Format("2006-01-02"), req.TimeSlots)
 
+	var venue models.Venue
+	if err := database.DB.First(&venue, req.VenueID).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "场地不存在"})
+		return
+	}
+
 	// 并发锁+冲突检测
 	err = database.DB.Transaction(func(tx *gorm.DB) error {
 		var existing []models.Booking
-		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("coach_id = ? AND booking_date = ?", req.CoachID, bookingDate).Find(&existing).Error
+		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("venue_id = ? AND booking_date = ?", req.VenueID, bookingDate).
+			Find(&existing).Error
 		if err != nil {
 			return err
 		}
@@ -83,6 +93,7 @@ func CreateBookingHandler(c *gin.Context) {
 		}
 		booking := models.Booking{
 			CoachID:     req.CoachID,
+			VenueID:     req.VenueID,
 			BookingDate: bookingDate,
 			TimeSlot:    req.TimeSlots,
 			ClientInfo:  req.StudentName,
@@ -122,6 +133,16 @@ func UpdateBookingHandler(c *gin.Context) {
 	if req.CoachID != 0 {
 		booking.CoachID = req.CoachID
 	}
+	venueID := booking.VenueID
+	if req.VenueID != nil {
+		var venue models.Venue
+		if err := database.DB.First(&venue, *req.VenueID).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "场地不存在"})
+			return
+		}
+		booking.VenueID = *req.VenueID
+		venueID = *req.VenueID
+	}
 	if req.Date != "" {
 		if date, err := time.Parse("2006-01-02", req.Date); err == nil {
 			booking.BookingDate = date
@@ -132,7 +153,7 @@ func UpdateBookingHandler(c *gin.Context) {
 	}
 	// 冲突校验：查找同教练同天除自己外的所有预约，判断时间段是否重叠
 	var existing []models.Booking
-	database.DB.Where("coach_id = ? AND booking_date = ? AND id != ?", booking.CoachID, booking.BookingDate, booking.ID).Find(&existing)
+	database.DB.Where("venue_id = ? AND booking_date = ? AND id != ?", venueID, booking.BookingDate, booking.ID).Find(&existing)
 	newRanges := parseTimeRanges(booking.TimeSlot)
 	for _, e := range existing {
 		existRanges := parseTimeRanges(e.TimeSlot)
@@ -167,9 +188,13 @@ func ListBookingsHandler(c *gin.Context) {
 	var bookings []models.Booking
 	coachID := c.Query("coach_id")
 	dateStr := c.Query("date")
-	db := database.DB
+	venueID := c.Query("venue_id")
+	db := database.DB.Preload("Venue")
 	if coachID != "" {
 		db = db.Where("coach_id = ?", coachID)
+	}
+	if venueID != "" {
+		db = db.Where("venue_id = ?", venueID)
 	}
 	if dateStr != "" {
 		if date, err := time.Parse("2006-01-02", dateStr); err == nil {
@@ -183,9 +208,15 @@ func ListBookingsHandler(c *gin.Context) {
 	// 返回前端需要的字段
 	var resp []gin.H
 	for _, b := range bookings {
+		venueName := ""
+		if b.Venue.ID != 0 {
+			venueName = b.Venue.Name
+		}
 		resp = append(resp, gin.H{
 			"id":           b.ID,
 			"coach_id":     b.CoachID,
+			"venue_id":     b.VenueID,
+			"venue_name":   venueName,
 			"date":         b.BookingDate.Format("2006-01-02"),
 			"time_slots":   b.TimeSlot,
 			"student_name": b.ClientInfo,
@@ -199,55 +230,52 @@ func ListBookingsHandler(c *gin.Context) {
 func BookingAvailabilityHandler(c *gin.Context) {
 	coachID := c.Query("coach_id")
 	dateStr := c.Query("date")
-	
-	if coachID == "" || dateStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "coach_id and date are required"})
+	venueID := c.Query("venue_id")
+
+	if coachID == "" || dateStr == "" || venueID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "coach_id, venue_id and date are required"})
 		return
 	}
-	
+
 	var bookings []models.Booking
-	db := database.DB.Where("coach_id = ?", coachID)
-	
+	db := database.DB.Where("coach_id = ?", coachID).Where("venue_id = ?", venueID)
+
 	if date, err := time.Parse("2006-01-02", dateStr); err == nil {
 		db = db.Where("DATE(booking_date) = ?", date.Format("2006-01-02"))
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format, use YYYY-MM-DD"})
 		return
 	}
-	
+
 	if err := db.Find(&bookings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve bookings"})
 		return
 	}
-	
-	// 添加日志
-	log.Printf("[BookingAvailability] coach_id=%s, date=%s, found %d bookings", coachID, dateStr, len(bookings))
-	
-	// 返回所有已预约的时间段，按 30 分钟粒度展开
-	// 例如：09:00-11:00 会被展开为 [09:00-09:30, 09:30-10:00, 10:00-10:30, 10:30-11:00]
-	expandToHalfHour := func(rangeStr string) []string {
+
+	log.Printf("[BookingAvailability] coach_id=%s, venue_id=%s, date=%s, found %d bookings", coachID, venueID, dateStr, len(bookings))
+
+	// 返回所有已预约的时间段，按 1 小时间隔展开，便于前端直接禁用对应整点
+	expandToInterval := func(rangeStr string, minutes int) []string {
 		parts := strings.Split(rangeStr, "-")
 		if len(parts) != 2 {
 			return nil
 		}
 		startStr := strings.TrimSpace(parts[0])
 		endStr := strings.TrimSpace(parts[1])
-		// 解析为当天固定日期，便于做时间加减
 		baseDate := "2006-01-02"
-		// 使用固定日期进行组合，日期值不重要
-		startTime, err1 := time.Parse(baseDate+" 15:04", "2006-01-02 "+startStr)
-		endTime, err2 := time.Parse(baseDate+" 15:04", "2006-01-02 "+endStr)
+		startTime, err1 := time.Parse(baseDate+" 15:04", baseDate+" "+startStr)
+		endTime, err2 := time.Parse(baseDate+" 15:04", baseDate+" "+endStr)
 		if err1 != nil || err2 != nil {
 			return nil
 		}
-		// 容错：如果结束早于开始，直接返回
 		if !endTime.After(startTime) {
 			return nil
 		}
 		var expanded []string
 		cursor := startTime
+		step := time.Duration(minutes) * time.Minute
 		for cursor.Before(endTime) {
-			next := cursor.Add(30 * time.Minute)
+			next := cursor.Add(step)
 			if next.After(endTime) {
 				next = endTime
 			}
@@ -267,8 +295,8 @@ func BookingAvailabilityHandler(c *gin.Context) {
 			if r == "" {
 				continue
 			}
-			// 尝试展开为半小时粒度；如果解析失败，则按原样加入
-			expanded := expandToHalfHour(r)
+			// 尝试展开为 1 小时间隔；如果解析失败，则按原样加入
+			expanded := expandToInterval(r, 60)
 			if len(expanded) == 0 {
 				occupiedSet[r] = struct{}{}
 				continue
@@ -295,10 +323,10 @@ func BookingAvailabilityHandler(c *gin.Context) {
 	}
 
 	log.Printf("[BookingAvailability] occupied_slots=%v (len=%d)", occupiedSlots, len(occupiedSlots))
-	
+
 	c.JSON(http.StatusOK, gin.H{
-		"coach_id": coachID,
-		"date":     dateStr,
+		"coach_id":       coachID,
+		"date":           dateStr,
 		"occupied_slots": occupiedSlots,
 	})
-} 
+}

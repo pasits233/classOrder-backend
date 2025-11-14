@@ -4,12 +4,12 @@ import (
 	"classOrder-backend/internal/database"
 	"classOrder-backend/internal/models"
 	"classOrder-backend/internal/services"
-	"net/http"
-	"time"
 	"errors"
+	"fmt"
 	"log"
-    "fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -18,10 +18,11 @@ import (
 
 // WeChatCreateBookingRequest 微信用户创建预约请求
 type WeChatCreateBookingRequest struct {
-	CoachID   uint   `json:"coach_id" binding:"required"`
-	Date      string `json:"date" binding:"required"`
-	TimeSlot  string `json:"time_slot" binding:"required"`
-	Duration  float64 `json:"duration" binding:"required"`
+	CoachID  uint    `json:"coach_id" binding:"required"`
+	VenueID  uint    `json:"venue_id" binding:"required"`
+	Date     string  `json:"date" binding:"required"`
+	TimeSlot string  `json:"time_slot" binding:"required"`
+	Duration float64 `json:"duration" binding:"required"`
 }
 
 // WeChatCreateBookingHandler 微信用户创建预约
@@ -66,37 +67,42 @@ func WeChatCreateBookingHandler(c *gin.Context) {
 		return
 	}
 
-	log.Printf("[WeChatCreateBooking] user_id=%d, coach_id=%d, date=%s, time_slot=%s", 
-		wechatUser.ID, req.CoachID, req.Date, req.TimeSlot)
+	log.Printf("[WeChatCreateBooking] user_id=%d, coach_id=%d, venue_id=%d, date=%s, time_slot=%s",
+		wechatUser.ID, req.CoachID, req.VenueID, req.Date, req.TimeSlot)
 
 	// 并发锁+冲突检测
-    err = database.DB.Transaction(func(tx *gorm.DB) error {
-		// 检查教练是否存在
+	err = database.DB.Transaction(func(tx *gorm.DB) error {
+		// 检查教练和场地是否存在
 		var coach models.Coach
 		if err := tx.First(&coach, req.CoachID).Error; err != nil {
 			return errors.New("教练不存在")
 		}
+		var venue models.Venue
+		if err := tx.First(&venue, req.VenueID).Error; err != nil {
+			return errors.New("场地不存在")
+		}
 
-        // 创建预约记录（昵称缺失时做回退）；并依赖唯一索引防止并发下重复
-    	displayName := wechatUser.NickName
-    	if displayName == "" {
-    		displayName = fmt.Sprintf("微信用户#%d", wechatUser.ID)
-    	}
-    	booking := models.Booking{
-    		CoachID:     req.CoachID,
-    		BookingDate: bookingDate,
-    		TimeSlot:    req.TimeSlot,
-    		ClientInfo:  displayName,
-    		StudentID:   wechatUser.ID,
-    	}
+		// 创建预约记录（昵称缺失时做回退）；并依赖唯一索引防止并发下重复
+		displayName := wechatUser.NickName
+		if displayName == "" {
+			displayName = fmt.Sprintf("微信用户#%d", wechatUser.ID)
+		}
+		booking := models.Booking{
+			CoachID:     req.CoachID,
+			VenueID:     req.VenueID,
+			BookingDate: bookingDate,
+			TimeSlot:    req.TimeSlot,
+			ClientInfo:  displayName,
+			StudentID:   wechatUser.ID,
+		}
 
-        if err := tx.Create(&booking).Error; err != nil {
-            // 处理并发唯一约束冲突（Duplicate entry）
-            if strings.Contains(err.Error(), "Duplicate entry") {
-                return errors.New("该时间段已被预约，请选择其他时间段")
-            }
-            return err
-        }
+		if err := tx.Create(&booking).Error; err != nil {
+			// 处理并发唯一约束冲突（Duplicate entry）
+			if strings.Contains(err.Error(), "Duplicate entry") {
+				return errors.New("该时间段已被预约，请选择其他时间段")
+			}
+			return err
+		}
 
 		return nil
 	})
@@ -106,7 +112,7 @@ func WeChatCreateBookingHandler(c *gin.Context) {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 			return
 		}
-		if err.Error() == "教练不存在" {
+		if err.Error() == "教练不存在" || err.Error() == "场地不存在" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -118,6 +124,7 @@ func WeChatCreateBookingHandler(c *gin.Context) {
 		"message": "预约创建成功",
 		"data": gin.H{
 			"coach_id":   req.CoachID,
+			"venue_id":   req.VenueID,
 			"date":       req.Date,
 			"time_slot":  req.TimeSlot,
 			"duration":   req.Duration,
@@ -151,12 +158,12 @@ func WeChatListBookingsHandler(c *gin.Context) {
 
 	// 查询该用户的所有预约
 	var bookings []models.Booking
-	db := database.DB.Where("student_id = ?", wechatUser.ID)
+	db := database.DB.Preload("Venue").Where("student_id = ?", wechatUser.ID)
 
 	// 支持按教练ID和日期筛选
 	coachID := c.Query("coach_id")
 	dateStr := c.Query("date")
-	
+
 	if coachID != "" {
 		db = db.Where("coach_id = ?", coachID)
 	}
@@ -174,9 +181,15 @@ func WeChatListBookingsHandler(c *gin.Context) {
 	// 返回前端需要的字段
 	var resp []gin.H
 	for _, b := range bookings {
+		venueName := ""
+		if b.Venue.ID != 0 {
+			venueName = b.Venue.Name
+		}
 		resp = append(resp, gin.H{
 			"id":         b.ID,
 			"coach_id":   b.CoachID,
+			"venue_id":   b.VenueID,
+			"venue_name": venueName,
 			"date":       b.BookingDate.Format("2006-01-02"),
 			"time_slot":  b.TimeSlot,
 			"student_id": b.StudentID,
@@ -193,7 +206,7 @@ func WeChatListBookingsHandler(c *gin.Context) {
 // WeChatDeleteBookingHandler 微信用户删除预约
 func WeChatDeleteBookingHandler(c *gin.Context) {
 	bookingID := c.Param("id")
-	
+
 	// 从 JWT 中获取微信用户信息
 	openID, exists := c.Get("open_id")
 	if !exists {
@@ -237,4 +250,4 @@ func WeChatDeleteBookingHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "预约删除成功",
 	})
-} 
+}

@@ -3,6 +3,7 @@ package database
 import (
 	"classOrder-backend/config"
 	"classOrder-backend/internal/models"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -29,54 +30,76 @@ func ExecuteMigrations(db *gorm.DB) error {
 		return fmt.Errorf("创建迁移记录表失败: %v", err)
 	}
 
-	// 检查是否已经执行过此次迁移
-	var record MigrationRecord
-	if err := db.Where("name = ?", "user_id_type_migration").First(&record).Error; err == nil {
-		log.Println("迁移已经执行过，跳过...")
-		return nil
+	type migrationScript struct {
+		Name string
+		Path string
 	}
 
-	// 使用相对于可执行文件的路径
-	migrationPath := filepath.Join("backend", "internal", "database", "migrations.sql")
+	scripts := []migrationScript{
+		{
+			Name: "user_id_type_migration",
+			Path: filepath.Join("backend", "internal", "database", "migrations.sql"),
+		},
+		{
+			Name: "venues_videos_migration",
+			Path: filepath.Join("backend", "internal", "database", "migrations_venues_videos.sql"),
+		},
+	}
 
-	// 尝试读取迁移文件
-	migrationSQL, err := os.ReadFile(migrationPath)
-	if err != nil {
-		alternatePath := filepath.Join("internal", "database", "migrations.sql")
-		migrationSQL, err = os.ReadFile(alternatePath)
-		if err != nil {
-			return fmt.Errorf("无法读取迁移文件，尝试的路径: %s 和 %s, 错误: %v",
-				migrationPath, alternatePath, err)
+	readScript := func(preferredPath string) ([]byte, error) {
+		data, err := os.ReadFile(preferredPath)
+		if err == nil {
+			return data, nil
 		}
+		alternatePath := filepath.Join("internal", "database", filepath.Base(preferredPath))
+		data, err = os.ReadFile(alternatePath)
+		if err != nil {
+			return nil, fmt.Errorf("无法读取迁移文件，尝试的路径: %s 和 %s, 错误: %v",
+				preferredPath, alternatePath, err)
+		}
+		return data, nil
 	}
 
-	// 开启事务
-	tx := db.Begin()
-	if tx.Error != nil {
-		return fmt.Errorf("开启事务失败: %v", tx.Error)
+	for _, script := range scripts {
+		var record MigrationRecord
+		err := db.Where("name = ?", script.Name).First(&record).Error
+		if err == nil {
+			continue
+		}
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("查询迁移记录失败: %v", err)
+		}
+
+		migrationSQL, err := readScript(script.Path)
+		if err != nil {
+			return err
+		}
+
+		tx := db.Begin()
+		if tx.Error != nil {
+			return fmt.Errorf("开启事务失败: %v", tx.Error)
+		}
+
+		if err := tx.Exec(string(migrationSQL)).Error; err != nil {
+			tx.Rollback()
+			return fmt.Errorf("执行迁移 %s 失败: %v", script.Name, err)
+		}
+
+		if err := tx.Create(&MigrationRecord{
+			Name:      script.Name,
+			AppliedAt: time.Now(),
+		}).Error; err != nil {
+			tx.Rollback()
+			return fmt.Errorf("记录迁移历史失败: %v", err)
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			return fmt.Errorf("提交迁移 %s 事务失败: %v", script.Name, err)
+		}
+
+		log.Printf("迁移 %s 执行完成", script.Name)
 	}
 
-	// 执行迁移SQL
-	if err := tx.Exec(string(migrationSQL)).Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("执行迁移失败: %v", err)
-	}
-
-	// 记录迁移完成
-	if err := tx.Create(&MigrationRecord{
-		Name:      "user_id_type_migration",
-		AppliedAt: time.Now(),
-	}).Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("记录迁移历史失败: %v", err)
-	}
-
-	// 提交事务
-	if err := tx.Commit().Error; err != nil {
-		return fmt.Errorf("提交事务失败: %v", err)
-	}
-
-	log.Println("成功执行并记录迁移")
 	return nil
 }
 
@@ -115,7 +138,9 @@ func InitDB() {
 	// 自动迁移模型（不处理外键约束）
 	if err := DB.Migrator().AutoMigrate(
 		&models.User{},
+		&models.Venue{},
 		&models.Coach{},
+		&models.CoachVideo{},
 		&models.Booking{},
 	); err != nil {
 		log.Printf("警告: 自动迁移表失败: %v", err)

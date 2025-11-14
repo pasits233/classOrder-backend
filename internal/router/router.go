@@ -24,12 +24,12 @@ func SetupRouter() *gin.Engine {
 		filepath.Join(os.Getenv("PWD"), "uploads"),    // 从环境变量获取
 		filepath.Join(os.Getenv("HOME"), "classOrder-backend", "uploads"),
 	}
-	
+
 	// 如果 Getwd() 成功，也添加该路径
 	if wd, err := os.Getwd(); err == nil {
 		possiblePaths = append(possiblePaths, filepath.Join(wd, "uploads"))
 	}
-	
+
 	// 尝试找到存在的 uploads 目录
 	found := false
 	for _, path := range possiblePaths {
@@ -40,7 +40,7 @@ func SetupRouter() *gin.Engine {
 			break
 		}
 	}
-	
+
 	// 如果都没找到，使用相对路径并尝试创建
 	if !found {
 		uploadsDir = "./uploads"
@@ -52,12 +52,12 @@ func SetupRouter() *gin.Engine {
 			}
 		}
 	}
-	
+
 	r.Static("/uploads", uploadsDir)
 
 	// 公开的登录路由
 	r.POST("/api/login", handlers.LoginHandler)
-	
+
 	// 微信登录相关路由
 	wechatHandler := handlers.NewWeChatHandler()
 	r.POST("/api/wechat/login", wechatHandler.LoginHandler)
@@ -80,9 +80,10 @@ func SetupRouter() *gin.Engine {
 		// 教练管理路由
 		coaches := api.Group("/coaches")
 		{
-			coaches.GET("", handlers.ListCoachesHandler)      // 获取教练列表 (公开)
-			coaches.GET("/:id", handlers.GetCoachHandler)     // 获取单个教练信息 (公开)
-			
+			coaches.GET("", handlers.ListCoachesHandler)                // 获取教练列表 (公开)
+			coaches.GET("/:id", handlers.GetCoachHandler)               // 获取单个教练信息 (公开)
+			coaches.GET("/:id/videos", handlers.ListCoachVideosHandler) // 获取教练视频 (公开)
+
 			// 以下操作需要管理员权限
 			adminCoaches := coaches.Group("", middleware.JWTAuthMiddleware(), middleware.AdminAuthMiddleware())
 			{
@@ -90,12 +91,20 @@ func SetupRouter() *gin.Engine {
 				adminCoaches.PUT("/:id", handlers.UpdateCoachHandler)
 				adminCoaches.DELETE("/:id", handlers.DeleteCoachHandler)
 				adminCoaches.POST("/:id/reset-password", handlers.ResetCoachPasswordHandler) // 重置密码
+				adminCoaches.POST("/:id/videos", handlers.CreateCoachVideoHandler)
 			}
+		}
+
+		// 教练视频更新/删除
+		adminCoachVideos := api.Group("/coach-videos", middleware.JWTAuthMiddleware(), middleware.AdminAuthMiddleware())
+		{
+			adminCoachVideos.PUT("/:id", handlers.UpdateCoachVideoHandler)
+			adminCoachVideos.DELETE("/:id", handlers.DeleteCoachVideoHandler)
 		}
 
 		// 预约可用性查询（公开接口，不需要登录）
 		api.GET("/bookings/availability", handlers.BookingAvailabilityHandler)
-		
+
 		// 预约管理路由（需要登录）
 		bookings := api.Group("/bookings", middleware.JWTAuthMiddleware())
 		{
@@ -105,6 +114,16 @@ func SetupRouter() *gin.Engine {
 			bookings.DELETE(":id", handlers.DeleteBookingHandler)
 		}
 
+		// 场地管理
+		api.GET("/venues", handlers.ListVenuesHandler)
+		api.GET("/venues/:id", handlers.GetVenueHandler)
+		adminVenues := api.Group("/venues", middleware.JWTAuthMiddleware(), middleware.AdminAuthMiddleware())
+		{
+			adminVenues.POST("", handlers.CreateVenueHandler)
+			adminVenues.PUT("/:id", handlers.UpdateVenueHandler)
+			adminVenues.DELETE("/:id", handlers.DeleteVenueHandler)
+		}
+
 		// 教练自助管理个人信息（仅需登录）
 		api.GET("/coach/profile", middleware.JWTAuthMiddleware(), handlers.GetOwnCoachProfileHandler)
 		api.PUT("/coach/profile", middleware.JWTAuthMiddleware(), handlers.UpdateOwnCoachProfileHandler)
@@ -112,4 +131,4 @@ func SetupRouter() *gin.Engine {
 	}
 
 	return r
-} 
+}
