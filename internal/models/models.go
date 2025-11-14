@@ -29,25 +29,25 @@ type Coach struct {
 
 // Venue 对应于 'venues' 表
 type Venue struct {
-	ID          uint   `gorm:"primaryKey"`
-	Name        string `gorm:"type:varchar(255);not null;unique"`
-	Address     string `gorm:"type:varchar(255)"`
-	ManagerName string `gorm:"type:varchar(255)"`
-	Contact     string `gorm:"type:varchar(100)"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Bookings    []Booking `gorm:"foreignKey:VenueID;constraint:OnDelete:RESTRICT;"`
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	Name        string    `gorm:"type:varchar(255);not null;unique" json:"name"`
+	Address     string    `gorm:"type:varchar(255)" json:"address"`
+	ManagerName string    `gorm:"type:varchar(255)" json:"manager_name"`
+	Contact     string    `gorm:"type:varchar(100)" json:"contact"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Bookings    []Booking `gorm:"foreignKey:VenueID;constraint:OnDelete:RESTRICT;" json:"bookings,omitempty"`
 }
 
 // CoachVideo 教练视频
 type CoachVideo struct {
-	ID        uint   `gorm:"primaryKey"`
-	CoachID   uint   `gorm:"not null;index"`
-	Title     string `gorm:"type:varchar(255);not null"`
-	VideoURL  string `gorm:"type:varchar(255);not null"`
-	CoverURL  string `gorm:"type:varchar(255)"`
-	SortOrder int    `gorm:"default:0"`
-	CreatedAt time.Time
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CoachID   uint      `gorm:"not null;index" json:"coach_id"`
+	Title     string    `gorm:"type:varchar(255);not null" json:"title"`
+	VideoURL  string    `gorm:"type:varchar(255);not null" json:"video_url"`
+	CoverURL  string    `gorm:"type:varchar(255)" json:"cover_url"`
+	SortOrder int       `gorm:"default:0" json:"sort_order"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // Booking 对应于 'bookings' 表
