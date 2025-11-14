@@ -13,7 +13,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // WeChatCreateBookingRequest 微信用户创建预约请求
