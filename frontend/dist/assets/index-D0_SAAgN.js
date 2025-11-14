@@ -73398,7 +73398,7 @@ const {
 } = axios;
 const request = axios.create({
   baseURL: "/",
-  timeout: 5e3
+  timeout: 3e4
 });
 request.interceptors.request.use(
   (config) => {
@@ -75289,4 +75289,4 @@ const root = client.createRoot(document.getElementById("root"));
 root.render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorBoundary, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) }) }) })
 );
-//# sourceMappingURL=index-CJ6qAY8e.js.map
+//# sourceMappingURL=index-D0_SAAgN.js.map
